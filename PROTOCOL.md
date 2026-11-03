@@ -28,7 +28,7 @@ The workouts alternate, so one week runs A, B, A and the next runs B, A, B. You 
 
 If you miss a lifting day, you can move it to the next weekday as long as you don't lift two days in a row, and that day's conditioning drops. Otherwise skip it. Either way, keep the A/B order, and the next session gets the weights the missed one would have had (this plan's rule).
 
-Lifting days take about 45 minutes now and stretch toward 75 as the weights climb, mostly because rests get longer. Rest between work sets until you can make a clean set: about 2 minutes while sets end with 3 or more reps to spare, 3 to 5 minutes once they end with 2 or fewer, and at least 5 minutes between sets of 3.
+Lifting days take about 45 minutes now and stretch toward 75 as the weights climb, mostly because rests get longer. Rest between work sets until you can make a clean set: about 2 minutes while sets end with 5 or more reps to spare, 2½ minutes with 3 or 4 to spare, 3 to 5 minutes once they end with 2 or fewer, and at least 5 minutes between the sets of the 5×3 bridge.
 
 If a lifting day is heading past 80 minutes, cut in this order (this plan's rule):
 

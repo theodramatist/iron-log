@@ -2,6 +2,8 @@
 
 *November 3, 2026 · Audited at commit `d4799de` on `claude/clever-volta-6xjl4x`*
 
+> **Resolved.** The owner accepted the recommendations, including Q20 and Q21, and every finding was then addressed the same day. The Resolution section at the end says what changed for each.
+
 This audit covers the rebuilt Iron Log after milestone M3: the rules engine, the on-phone data layer, and the four core screens (Setup, Today, and the lifting and conditioning sessions). Week, Progress, Lifts, Settings, the service worker, the icons, and the deploy come in M4 through M6, so they're listed at the end as not yet built rather than as findings. Finding IDs here belong to this document. The IDs in `docs/AUDIT.md` refer to the old app.
 
 ## Scope and method
@@ -170,3 +172,39 @@ Before M6 replaces the old app, export your data from it: open the old Iron Log 
 ## Appendix: how findings were verified
 
 The engine probes were throwaway Vitest files. They built logs with `tests/helpers/log.ts` and read plans through the engine's public API, as the scenario tests do. The timings came from logs built the same way, with every set made and every session logged, then run through `planFor`, `prescribe`, `weekSummary`, and the four calls Today makes. The screen findings came from Playwright 1.63.0 driving `npm run dev` with the `?today=` override. It measured each control's bounding box and listed the live regions on each screen, and it took screenshots at 375 × 667 and 390 × 844.
+
+## Resolution
+
+*November 3, 2026.* The owner accepted every recommendation, including Q20 and Q21, and asked for all the findings to be fixed. The test count rose from 174 to 181, and the browser smoke test still passes.
+
+| Finding | What changed |
+| --- | --- |
+| H1 | The heavy-warm-up question now comes once per lift: it clears at the lift's first heavy session back, whatever the answer. A lift that wasn't in that session is still asked at its own first session. |
+| H2 | Q20, now an app rule in RULES.md section 9: a bench, row, or clean that still needs calibration sits out a light or floor week, with a note, and calibrates at its first session of a normal week. |
+| M1 | Q21, now an app rule in RULES.md section 12: a pain return inside a light or floor week takes that week's sets at 90%, and still counts as the return. |
+| M2 | Week summaries count planned lifting days against the week's cap, so Christmas week shows two lifting days, and a week with a swapped-in session shows three. |
+| M3 | Chins recalibrating after a long layoff get their own wording, with no depth cue. A dip recalibration names its start. Day one keeps program.json's text. |
+| M4 | Steppers no longer shrink, and the conditioning note sits under the minutes. The buttons measure 46 points wide at 375. |
+| M5 | Sheets take focus once, when they open, and hand it back when they close. Focus now stays put while the session clock ticks. |
+| M6 | Any tap on a session screen unlocks sound, so a session reopened after iOS closed the app can beep. |
+| M7 | A session left from an earlier day reopens as a past entry for its own date, with no clock or timer, and a note offers to finish or discard it. |
+| M8 | A failed save says so on screen and leaves Save ready for a retry. A draft that won't save shows a note too. |
+| M9 | Every screen warns, in plain words, when storage won't open. |
+| M10 | Text sizes are in `rem`, from a root that follows the iPhone's text-size setting. Inputs stay at 16 px or more, so iOS doesn't zoom, and the big timers are capped so they fit. |
+| M11 | A week is now replayed in one pass instead of eight, and conditioning weeks are counted from an index. At two years of training, Today's work fell from 107 ms to 14 ms, and the week summary from 91 ms to 5 ms. |
+| M12 | Only the segment name is a live region. The countdown is a plain timer. |
+| L1 | Calibration cards have a menu with Pain stop. |
+| L2 | Buttons turn off text selection and the iOS callout. |
+| L3 | No change. On a closer look the case can't arise as written: the repeat runs at the weight that stalled, and that stall reached the food lever only because the weight was above `lastResetFrom`. It could matter only if he logged less than the prescribed weight on that repeat. A comment in `barbell.ts` now explains it. |
+| L4 | Restoring a backup clears session drafts, and a backup with no setup entry is refused. |
+| L5 | Start session, or I'm better in sick mode, sits in a bar at the bottom of Today, above the tabs. |
+| L6 | Day summaries and lift cards name a light day, a light week, a floor week, a pain return, and a graduated lift. |
+| L7 | A finished weekday offers "Log another session today," limited to what still fits the week. |
+| L8 | Session screens contain their own scrolling and hold the page behind them still. |
+| L9 | A past entry's summary reads the log as of that entry's date. |
+| L10 | Vite's preload polyfill is off, and the bundle contains no `fetch`. |
+| L11 | PROTOCOL.md's rest sentence now matches RULES.md: about 2 minutes with 5 or more reps to spare, 2½ with 3 or 4, 3 to 5 with 2 or fewer, and at least 5 between the bridge's sets of 3. |
+| L12 | A graduated lift's prefill now lives in `next`, which a layoff drops. `lastCompleted` keeps the weight he last completed, for Q17's restart suggestion. |
+| L13 | The lifting session is now nine files under `src/ui/screens/lifting/`, none over 270 lines, and both session screens share `src/ui/screens/session/SessionFrame.tsx`. |
+| L14 | Not fixable yet. The warnings are all in development tools: ESLint, typescript-eslint, and the PWA plugin's Workbox build. Every package is already at the newest version its range allows, `deepmerge` has no fixed release at all, and npm's only suggested fixes are downgrades to old majors. Nothing in the bundle the phone runs is affected. Recheck when those tools update. |
+
