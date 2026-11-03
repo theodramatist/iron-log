@@ -10,6 +10,7 @@ export {
   addDays,
   daysBetween,
   dayNumber,
+  isValidDate,
   isWeekend,
   programWeek,
   weekdayIndex,
@@ -33,6 +34,7 @@ export { calibrationNextWeight, calibrationOutcome, dipCalibrationNext } from '.
 export { spreadReps } from './assist';
 export { restDefaultSec, timerRemainingSec, timeGuard, type SessionProgress, type TimerState } from './time';
 export { buildSetupEvents, type SetupAnswers } from './setup';
+export { sortEvents } from './replay';
 export {
   assistStates,
   conditioningState,
