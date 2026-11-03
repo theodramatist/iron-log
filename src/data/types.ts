@@ -43,6 +43,7 @@ export interface StorageAdapter {
   putEvents(evs: AnyEvent[]): Promise<void>;
   deleteEvent(id: string): Promise<void>;
   /** Replace every event and the settings in one transaction. */
+  /** Replace the log and settings, and drop any session drafts. */
   replaceAll(data: { events: AnyEvent[]; settings: Partial<Settings> }): Promise<void>;
   putSettings(settings: Partial<Settings>): Promise<void>;
   putMeta(meta: Meta): Promise<void>;

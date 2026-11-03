@@ -2,11 +2,11 @@
 // the screening gate before the first intervals, a segmented timer, and Finish.
 
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
-import { planFor, type ConditioningPlan, type EquipmentDown } from '../../engine';
-import { alertNow, useWakeLock } from '../alerts';
+import { planFor, type ConditioningPlan } from '../../engine';
+import { alertNow } from '../alerts';
 import { nowIso } from '../clock';
-import { Confirm, Question, Sheet, Stepper, YesNo } from '../components';
-import { clock, shortDate } from '../format';
+import { Question, Stepper, YesNo } from '../components';
+import { clock } from '../format';
 import { useNow } from '../hooks';
 import {
   conditioningPlanOf,
@@ -23,6 +23,17 @@ import {
   type Segment,
 } from '../session/conditioning';
 import { useApp } from '../store';
+import {
+  DRAFT_NOT_SAVED,
+  DiscardConfirm,
+  EarlierDayNote,
+  Problem,
+  SessionMenu,
+  SessionTop,
+  StopSheet,
+  saveFailed,
+  useSessionScreen,
+} from './session/SessionFrame';
 
 type Update = (next: ConditioningDraft) => void;
 
@@ -32,9 +43,10 @@ export function ConditioningSession(props: { initial: ConditioningDraft; onClose
   const [d, setD] = useState<ConditioningDraft>(props.initial);
   const [done, setDone] = useState<null | { food: string[]; stopped: boolean }>(null);
   const [sheet, setSheet] = useState<null | 'stop' | 'menu' | 'discard'>(null);
+  const [problem, setProblem] = useState<string | null>(null);
   const update: Update = (next) => {
     setD(next);
-    void repo.saveDraft('conditioning', next);
+    repo.saveDraft('conditioning', next).catch(() => setProblem(DRAFT_NOT_SAVED));
   };
   const planKey = JSON.stringify([d.date, d.shortNight, d.targetMinutes, d.intervals, d.equipmentDown]);
   const frozen = useRef<ConditioningPlan | null>(null);
@@ -42,7 +54,7 @@ export function ConditioningSession(props: { initial: ConditioningDraft; onClose
   const plan = done && frozen.current ? frozen.current : live;
   const running = d.step === 'running' && !d.past;
   const now = useNow(250, running);
-  useWakeLock(!done);
+  useSessionScreen(!done);
 
   const segs = useMemo(() => timeline(plan, program), [plan, program]);
   const elapsed = elapsedSec(d, new Date(now).toISOString());
@@ -60,92 +72,74 @@ export function ConditioningSession(props: { initial: ConditioningDraft; onClose
     if (pos.finished) update(finish(d, plan, program, nowIso()));
   }, [pos.index, running]);
 
-  const save = async (stopped: boolean) => {
+  /** Log the session. Resolves false, with a message on screen, if the phone didn't save it. */
+  const save = async (stopped: boolean): Promise<boolean> => {
+    try {
+      await repo.add(toConditioningEvent(live, d, { stopped }));
+    } catch (e) {
+      setProblem(saveFailed(e));
+      return false;
+    }
     frozen.current = live;
-    await repo.add(toConditioningEvent(live, d, { stopped }));
-    await repo.clearDraft('conditioning');
+    await repo.clearDraft('conditioning').catch(() => undefined);
+    setProblem(null);
     setDone({ food: stopped ? [] : planFor(repo.input(app.today), d.date).foodLines, stopped });
+    return true;
   };
+
+  const discard = () =>
+    repo.clearDraft('conditioning').then(props.onClose, (e: unknown) => {
+      setSheet(null);
+      setProblem(saveFailed(e));
+    });
 
   return (
     <div class="session" role="dialog" aria-modal="true" aria-label="Conditioning session">
-      <div class="session-top">
-        <div class="clock">
-          {d.past ? (
-            <>
-              <div class="num">Past entry</div>
-              <div class="sub">{shortDate(d.date)}</div>
-            </>
-          ) : (
-            <>
-              <div class="num" role="timer" aria-label="Session time">
-                {clock(elapsed)}
-              </div>
-              <div class="sub">
-                {plan.targetMinutes} min{plan.intervals > 0 ? ` · ${plan.intervals} intervals` : ''}
-              </div>
-            </>
-          )}
-        </div>
-        {!done && (
-          <button type="button" class="menu-btn" aria-label="Session menu" onClick={() => setSheet('menu')}>
-            ⋯
-          </button>
-        )}
-        {!done && (
-          <button type="button" class="stop-btn" onClick={() => setSheet('stop')}>
-            Stop session
-          </button>
-        )}
-      </div>
+      <SessionTop
+        past={d.past}
+        date={d.date}
+        elapsedSec={elapsed}
+        sub={`${plan.targetMinutes} min${plan.intervals > 0 ? ` · ${plan.intervals} intervals` : ''}`}
+        actions={!done}
+        onMenu={() => setSheet('menu')}
+        onStop={() => setSheet('stop')}
+      />
 
       <div class="session-body">
+        <Problem message={problem} />
+        {!done && d.fromEarlierDay && <EarlierDayNote date={d.date} />}
         {done ? (
           <DoneView done={done} onClose={props.onClose} />
         ) : d.step === 'checkIn' ? (
           <CheckIn d={d} update={update} />
         ) : d.step === 'setup' ? (
           <SetupView plan={plan} d={d} update={update} />
-        ) : d.step === 'running' ? (
+        ) : d.step === 'running' && !d.past ? (
           <RunningView plan={plan} d={d} update={update} segs={segs} pos={pos} elapsed={elapsed} />
         ) : (
-          <FinishView plan={plan} d={d} update={update} onSave={() => void save(false)} />
+          <FinishView plan={plan} d={d} update={update} onSave={() => save(false)} />
         )}
       </div>
 
       {sheet === 'stop' && (
-        <Sheet title="Stop session" onClose={() => setSheet(null)}>
-          <p class="note alarm">{program.safety.stopSessionMessage}</p>
-          <p>Ending here logs the session as stopped. Nothing from it counts.</p>
-          <div class="btn-row">
-            <button type="button" class="btn btn-ghost" onClick={() => setSheet(null)}>
-              Keep going
-            </button>
-            <button
-              type="button"
-              class="btn btn-primary"
-              onClick={() => {
-                setSheet(null);
-                void save(true);
-              }}
-            >
-              End session
-            </button>
-          </div>
-        </Sheet>
-      )}
-      {sheet === 'menu' && <Menu d={d} update={update} onClose={() => setSheet(null)} onDiscard={() => setSheet('discard')} />}
-      {sheet === 'discard' && (
-        <Confirm
-          title="Discard this session?"
-          message="Nothing from it is logged."
-          confirm="Discard"
-          onCancel={() => setSheet(null)}
-          onConfirm={() => {
-            void repo.clearDraft('conditioning').then(props.onClose);
+        <StopSheet
+          onKeepGoing={() => setSheet(null)}
+          onEnd={() => {
+            setSheet(null);
+            void save(true);
           }}
         />
       )}
+      {sheet === 'menu' && (
+        <SessionMenu
+          options={['skiErg', 'airBike']}
+          down={d.equipmentDown}
+          onChange={(equipmentDown) => update({ ...d, equipmentDown })}
+          onClose={() => setSheet(null)}
+          onDiscard={() => setSheet('discard')}
+        />
+      )}
+      {sheet === 'discard' && <DiscardConfirm onCancel={() => setSheet(null)} onConfirm={() => void discard()} />}
     </div>
   );
 }
@@ -170,7 +164,10 @@ function SetupView(props: { plan: ConditioningPlan; d: ConditioningDraft; update
   const app = useApp();
   const { program, input } = app;
   const { plan, d, update } = props;
-  const defaults = useMemo(() => conditioningPlanOf(input, { ...d, intervals: null }), [input, d.date, d.shortNight, d.targetMinutes, d.equipmentDown]);
+  const defaults = useMemo(
+    () => conditioningPlanOf(input, { ...d, intervals: null }),
+    [input, d.date, d.shortNight, d.targetMinutes, d.equipmentDown],
+  );
   const canChooseIntervals = plan.intervals > 0 && plan.maxIntervals > defaults.intervals;
   const begin = () => {
     if (d.past) update(finish({ ...d, step: 'finish' }, plan, program, nowIso()));
@@ -186,26 +183,38 @@ function SetupView(props: { plan: ConditioningPlan; d: ConditioningDraft; update
       {plan.layoffDrop === 'restart' && <p class="note info">More than 60 days since the last session: back to conditioning week 1.</p>}
       <div class="card">
         <Question text="Minutes">
-          <div class="spread">
-            <Stepper label="Minutes" value={plan.targetMinutes} step={5} min={plan.minMinutes} max={plan.range[1]} onChange={(v) => update({ ...d, targetMinutes: v })} />
-            <span class="small muted">
-              Phase range {plan.range[0]}–{plan.range[1]}. Down to {plan.minMinutes} when short on time.
-            </span>
-          </div>
+          <Stepper
+            label="Minutes"
+            value={plan.targetMinutes}
+            step={5}
+            min={plan.minMinutes}
+            max={plan.range[1]}
+            onChange={(v) => update({ ...d, targetMinutes: v })}
+          />
+          <p class="small muted">
+            Phase range {plan.range[0]}–{plan.range[1]}. Down to {plan.minMinutes} when short on time.
+          </p>
         </Question>
         {canChooseIntervals && (
           <Question text="Intervals">
-            <Stepper label="Intervals" value={plan.intervals} min={defaults.intervals} max={plan.maxIntervals} onChange={(v) => update({ ...d, intervals: v })} />
+            <Stepper
+              label="Intervals"
+              value={plan.intervals}
+              min={defaults.intervals}
+              max={plan.maxIntervals}
+              onChange={(v) => update({ ...d, intervals: v })}
+            />
           </Question>
         )}
         {plan.noIntervalsReason && <p class="cue">{plan.noIntervalsReason}</p>}
-        <ul class="lines">
+        <ul class="lines plain">
           <li>
             Easy · {plan.machines.easy} · {program.conditioning.easy.intensity}
           </li>
           {plan.intervals > 0 && plan.layout && (
             <li>
-              {plan.intervals} × 30 s hard, 90 s easy · {plan.machines.intervals} · {Math.round(plan.layout.easyBeforeSec / 60)} easy minutes before and after
+              {plan.intervals} × 30 s hard, 90 s easy · {plan.machines.intervals} · {Math.round(plan.layout.easyBeforeSec / 60)} easy minutes
+              before and after
             </li>
           )}
         </ul>
@@ -250,9 +259,12 @@ function RunningView(props: {
   return (
     <>
       {seg && (
-        <div class="countdown" aria-live="polite">
-          <div class={seg.kind === 'hard' ? 'seg hard' : 'seg'}>{segmentName(seg, plan.intervals)}</div>
-          <div class="time" role="timer">
+        <div class="countdown">
+          {/* Only the change of segment is announced. The time ticks too often to read aloud. */}
+          <div class={seg.kind === 'hard' ? 'seg hard' : 'seg'} aria-live="polite">
+            {segmentName(seg, plan.intervals)}
+          </div>
+          <div class="time" role="timer" aria-label="Time left in this segment">
             {clock(pos.remainingSec)}
           </div>
           <div class="next">
@@ -289,7 +301,7 @@ function RunningView(props: {
   );
 }
 
-function FinishView(props: { plan: ConditioningPlan; d: ConditioningDraft; update: Update; onSave: () => void }) {
+function FinishView(props: { plan: ConditioningPlan; d: ConditioningDraft; update: Update; onSave: () => Promise<boolean> }) {
   const { plan, d, update } = props;
   const [saving, setSaving] = useState(false);
   return (
@@ -297,11 +309,23 @@ function FinishView(props: { plan: ConditioningPlan; d: ConditioningDraft; updat
       <h1>Finish</h1>
       <div class="card">
         <Question text="Minutes done">
-          <Stepper label="Minutes done" value={d.actualMinutes ?? plan.targetMinutes} min={0} max={plan.range[1]} onChange={(v) => update({ ...d, actualMinutes: v })} />
+          <Stepper
+            label="Minutes done"
+            value={d.actualMinutes ?? plan.targetMinutes}
+            min={0}
+            max={plan.range[1]}
+            onChange={(v) => update({ ...d, actualMinutes: v })}
+          />
         </Question>
         {plan.intervals > 0 && (
           <Question text="Intervals done">
-            <Stepper label="Intervals done" value={d.intervalsDone ?? plan.intervals} min={0} max={plan.intervals} onChange={(v) => update({ ...d, intervalsDone: v })} />
+            <Stepper
+              label="Intervals done"
+              value={d.intervalsDone ?? plan.intervals}
+              min={0}
+              max={plan.intervals}
+              onChange={(v) => update({ ...d, intervalsDone: v })}
+            />
           </Question>
         )}
         <div class="field">
@@ -315,7 +339,9 @@ function FinishView(props: { plan: ConditioningPlan; d: ConditioningDraft; updat
         disabled={saving}
         onClick={() => {
           setSaving(true);
-          props.onSave();
+          void props.onSave().then((saved) => {
+            if (!saved) setSaving(false);
+          });
         }}
       >
         Save session
@@ -347,43 +373,5 @@ function DoneView(props: { done: { food: string[]; stopped: boolean }; onClose: 
         Done
       </button>
     </>
-  );
-}
-
-const EQUIPMENT: { id: EquipmentDown; label: string }[] = [
-  { id: 'skiErg', label: 'SkiErg unavailable' },
-  { id: 'airBike', label: 'Air bike unavailable' },
-];
-
-function Menu(props: { d: ConditioningDraft; update: Update; onClose: () => void; onDiscard: () => void }) {
-  const { d, update } = props;
-  return (
-    <Sheet title="Session" onClose={props.onClose}>
-      <div class="card-kicker">Equipment down</div>
-      <div class="chips">
-        {EQUIPMENT.map((e) => {
-          const on = d.equipmentDown.includes(e.id);
-          return (
-            <button
-              type="button"
-              class="chip"
-              key={e.id}
-              aria-pressed={on}
-              onClick={() => update({ ...d, equipmentDown: on ? d.equipmentDown.filter((x) => x !== e.id) : [...d.equipmentDown, e.id] })}
-            >
-              {e.label}
-            </button>
-          );
-        })}
-      </div>
-      <div class="btn-row" style={{ marginTop: '18px' }}>
-        <button type="button" class="btn btn-ghost" onClick={props.onDiscard}>
-          Discard session
-        </button>
-        <button type="button" class="btn btn-primary" onClick={props.onClose}>
-          Done
-        </button>
-      </div>
-    </Sheet>
   );
 }

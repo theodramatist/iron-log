@@ -87,6 +87,8 @@ export interface LiftingDraft {
   date: LocalDate;
   /** A past-date entry (RULES.md section 17): no clock, no rest timer. */
   past: boolean;
+  /** Left unfinished on an earlier day and reopened as a past entry. */
+  fromEarlierDay?: boolean;
   step: 'checkIn' | 'lifting' | 'finish';
   startedAt: IsoTimestamp | null;
   /** Start check-in answers. Unanswered questions are absent. */

@@ -121,15 +121,25 @@ export function Stepper(props: {
   );
 }
 
-/** A bottom sheet for menus and confirmations. */
+/**
+ * A bottom sheet for menus and confirmations. Focus moves in once, when it
+ * opens, and goes back where it was when it closes. Callers pass a new
+ * onClose on every render, so it's read through a ref.
+ */
 export function Sheet(props: { title: string; onClose: () => void; children: ComponentChildren }) {
   const panel = useRef<HTMLDivElement>(null);
+  const onClose = useRef(props.onClose);
+  onClose.current = props.onClose;
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && props.onClose();
+    const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose.current();
     document.addEventListener('keydown', onKey);
     panel.current?.focus();
-    return () => document.removeEventListener('keydown', onKey);
-  }, [props.onClose]);
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      if (opener?.isConnected) opener.focus();
+    };
+  }, []);
   return (
     <div class="backdrop" onClick={(e) => e.target === e.currentTarget && props.onClose()}>
       <div class="sheet" role="dialog" aria-modal="true" aria-label={props.title} tabIndex={-1} ref={panel}>

@@ -20,6 +20,8 @@ export interface ConditioningDraft {
   kind: 'conditioning';
   date: LocalDate;
   past: boolean;
+  /** Left unfinished on an earlier day and reopened as a past entry. */
+  fromEarlierDay?: boolean;
   step: 'checkIn' | 'setup' | 'running' | 'finish';
   shortNight: boolean | null;
   /** Null until he changes them: the plan's defaults. */

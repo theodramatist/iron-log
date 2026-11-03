@@ -161,6 +161,10 @@ export function parseBackup(text: string): ParseResult {
     if (ids.has(id)) return { ok: false, error: 'Two entries in this backup share an ID.' };
     ids.add(id);
   }
+  // Without its setup entry, the app would start setup again on top of the log.
+  if (!raw.events.some((e) => (e as Obj).type === 'setup')) {
+    return { ok: false, error: "This backup has no setup entry, so it can't be restored." };
+  }
 
   const file: BackupFile = {
     app: APP_ID,

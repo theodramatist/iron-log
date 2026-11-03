@@ -27,6 +27,7 @@ export function memoryAdapter(): StorageAdapter {
     },
     async replaceAll(data) {
       events.clear();
+      drafts.clear();
       for (const ev of data.events) events.set(ev.id, clone(ev));
       settings = clone(data.settings);
     },

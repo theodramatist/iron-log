@@ -57,9 +57,10 @@ export async function idbAdapter(name: string = DB_NAME): Promise<StorageAdapter
       await conn.delete('events', id);
     },
     async replaceAll(data) {
-      const tx = conn.transaction(['events', 'meta'], 'readwrite');
+      // A session in progress belongs to the log being replaced, so its draft goes too.
+      const tx = conn.transaction(['events', 'drafts', 'meta'], 'readwrite');
       const events = tx.objectStore('events');
-      await events.clear();
+      await Promise.all([events.clear(), tx.objectStore('drafts').clear()]);
       await Promise.all([
         ...data.events.map((ev) => events.put(ev)),
         tx.objectStore('meta').put(data.settings, 'settings'),

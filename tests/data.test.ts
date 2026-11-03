@@ -130,7 +130,21 @@ describe('Data: the event store, drafts, and backups', () => {
       (f.events as AnyEvent[]).find((e): e is LiftingSessionEvent => e.type === 'liftingSession')!;
     expect(bad((f) => ((lifting(f) as unknown as { lifts: unknown }).lifts = 'squat'))).toMatchObject({ ok: false });
     expect(bad((f) => (lifting(f).lifts[0]!.sets = [{ weight: '95', reps: 5 }] as never))).toMatchObject({ ok: false });
+    expect(bad((f) => (f.events = (f.events as AnyEvent[]).filter((e) => e.type !== 'setup')))).toMatchObject({
+      ok: false,
+      error: "This backup has no setup entry, so it can't be restored.",
+    });
     expect(parseBackup(JSON.stringify(good))).toMatchObject({ ok: true, eventCount: good.events.length });
+  });
+
+  it('drops session drafts when a backup replaces the log', async () => {
+    const { repo } = await repoWith(sampleLog().events);
+    const file = repo.backup();
+    await repo.saveDraft('lifting', { step: 'lifting' });
+    await repo.saveDraft('conditioning', { step: 'running' });
+    await repo.restore(file);
+    expect(await repo.getDraft('lifting')).toBeNull();
+    expect(await repo.getDraft('conditioning')).toBeNull();
   });
 
   it('adds, edits, and removes events, and every change replays', async () => {

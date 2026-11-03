@@ -6,11 +6,14 @@ import {
   conditioningState,
   planFor,
   triggers,
+  weekdayIndex,
   weekStart,
   weekSummary,
   type Banner,
   type DayPlan,
   type LocalDate,
+  type Program,
+  type WeekSummary,
 } from '../../engine';
 import { unlockAudio } from '../alerts';
 import { nowIso } from '../clock';
@@ -55,9 +58,22 @@ export function Today(props: { onStart: (route: SessionRoute) => void }) {
   };
 
   const doneToday = day.status === 'done';
+  const [another, setAnother] = useState(false);
+  // The day's main action sits at the bottom, in reach of a thumb (SPEC.md section 6).
+  const primary =
+    day.kind === 'sick' ? (
+      <button type="button" class="btn btn-primary" onClick={() => void app.log({ type: 'illness', date: today, kind: 'better' })}>
+        I'm better
+      </button>
+    ) : !doneToday && day.kind !== 'off' ? (
+      <button type="button" class="btn btn-primary" onClick={() => tryStart(day.kind as 'lifting' | 'conditioning')}>
+        Start session
+      </button>
+    ) : null;
+  const caps = weekCaps(program, week, today);
 
   return (
-    <main class="screen">
+    <main class={primary ? 'screen has-action' : 'screen'}>
       <div class="eyebrow">
         Week <b>{day.programWeek}</b> · Conditioning phase <b>{phase}</b>
       </div>
@@ -68,18 +84,6 @@ export function Today(props: { onStart: (route: SessionRoute) => void }) {
 
       <SessionCard day={day} />
 
-      {day.kind === 'sick' ? (
-        <button type="button" class="btn btn-primary" onClick={() => void app.log({ type: 'illness', date: today, kind: 'better' })}>
-          I'm better
-        </button>
-      ) : (
-        !doneToday &&
-        day.kind !== 'off' && (
-          <button type="button" class="btn btn-primary" onClick={() => tryStart(day.kind as 'lifting' | 'conditioning')}>
-            Start session
-          </button>
-        )
-      )}
       <div class="btn-row">
         {day.kind !== 'sick' && !doneToday && day.swapTo && (
           <button type="button" class="btn btn-ghost" onClick={() => tryStart(day.swapTo!)}>
@@ -92,6 +96,11 @@ export function Today(props: { onStart: (route: SessionRoute) => void }) {
           </button>
         )}
       </div>
+      {doneToday && (caps.lifting || caps.conditioning) && (
+        <button type="button" class="btn-quiet" onClick={() => setAnother(true)}>
+          Log another session today
+        </button>
+      )}
 
       <h2>This week</h2>
       <WeekStrip days={week.days.slice(0, 5)} today={today} />
@@ -132,6 +141,45 @@ export function Today(props: { onStart: (route: SessionRoute) => void }) {
         />
       )}
       {menu && <SomethingCameUp onClose={() => setMenu(false)} />}
+      {another && (
+        <Sheet title="Another session today" onClose={() => setAnother(false)}>
+          <p class="note">A session is already logged today. Two on one day is allowed.</p>
+          <div class="stack">
+            {caps.lifting && (
+              <button
+                type="button"
+                class="btn btn-ghost"
+                onClick={() => {
+                  setAnother(false);
+                  tryStart('lifting');
+                }}
+              >
+                Lifting
+              </button>
+            )}
+            {caps.conditioning && (
+              <button
+                type="button"
+                class="btn btn-ghost"
+                onClick={() => {
+                  setAnother(false);
+                  tryStart('conditioning');
+                }}
+              >
+                Conditioning
+              </button>
+            )}
+            <button type="button" class="btn-quiet" onClick={() => setAnother(false)}>
+              Cancel
+            </button>
+          </div>
+        </Sheet>
+      )}
+      {primary && (
+        <div class="action-bar">
+          <div class="action-inner">{primary}</div>
+        </div>
+      )}
       {past && (
         <PastEntry
           onClose={() => setPast(false)}
@@ -143,6 +191,18 @@ export function Today(props: { onStart: (route: SessionRoute) => void }) {
       )}
     </main>
   );
+}
+
+/**
+ * Whether another session of each kind fits this week (RULES.md sections 1
+ * and 10). Weekends offer none.
+ */
+function weekCaps(program: Program, week: WeekSummary, today: LocalDate): { lifting: boolean; conditioning: boolean } {
+  if (weekdayIndex(today) >= 5) return { lifting: false, conditioning: false };
+  const floor = week.weekType === 'floor';
+  const liftCap = floor ? program.deload.floorWeek.maxLiftingSessions : program.schedule.maxLiftingSessionsPerWeek;
+  const condCap = floor ? 0 : program.schedule.maxConditioningSessionsPerWeek;
+  return { lifting: week.liftingDone < liftCap, conditioning: week.conditioningDone < condCap };
 }
 
 // ------------------------------------------------------------ session card

@@ -22,6 +22,10 @@ export default defineConfig({
       },
     }),
   ],
+  build: {
+    // One bundle, nothing to preload: leave out Vite's preload polyfill, the only fetch() it would ship.
+    modulePreload: { polyfill: false },
+  },
   test: {
     include: ['tests/**/*.test.ts'],
     environment: 'node',
