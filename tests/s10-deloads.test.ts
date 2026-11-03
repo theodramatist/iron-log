@@ -206,4 +206,15 @@ describe('§10 Deloads, illness, and floor weeks', () => {
     const log = buildLog().declare('2026-11-04', 'light').lift('2026-11-04', { squat: missed() });
     expect(log.state('squat')).toMatchObject({ stage: 'NORMAL', hasMissed: false, lcw: 95 });
   });
+
+  it('Q7 A floor week is its whole calendar week', () => {
+    const log = buildLog();
+    for (const date of ['2026-12-26', '2026-12-27']) {
+      const day = log.day(date, '2026-12-20');
+      expect(day.weekType).toBe('floor');
+      expect(day.banners.map((b) => b.kind)).not.toContain('maintenanceBreak');
+      expect(day.notes).toContain(PROGRAM.deload.floorWeek.insideMaintenanceBreakNote);
+    }
+    expect(log.day('2026-12-28', '2026-12-20').banners.map((b) => b.kind)).toContain('maintenanceBreak');
+  });
 });

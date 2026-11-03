@@ -54,6 +54,7 @@ The engine is a pure function. Given the program constants, the settings, and th
 - **Percentage weights** (resets, the light squat day, light weeks, pain returns, layoff drops, and restarts): multiply, round down to the nearest 2.5 lb (5 lb for the deadlift), then take the largest loadable weight at or below that. Written `percentWeight(base, fraction)` below.
 - **Warm-up weights:** round down to the nearest 5 lb (section 9).
 - **Logged weights rule.** Results always use the weight actually lifted. If the user lifts something other than the prescription, the logged weight is `W` for every rule below.
+- **Mixed work weights [app rule].** If the work sets were logged at different weights, `W` is the lowest weight among the attempted sets.
 - **Assist machine** (Settings): whether 5-lb steps are possible (a 5-lb stack, or a half-step magnet on a 10-lb stack) and whether 2.5-lb steps are possible (an add-on weight). Section 7 covers what happens when a step isn't possible.
 
 ## 4. Barbell progression
@@ -77,6 +78,7 @@ next = progressionWeight(lcw, jump), same set scheme
 - The user may pick a smaller jump than the suggestion, down to the smallest jump or a repeat, but never a larger one. PROTOCOL.md: "When in doubt, take the smaller jump."
 - **Cap after a miss.** A lift that has missed reps once stays on its 1–2-left increments for the rest of the novice run, and the first jump after any recovery from a miss is the smallest jump. PROTOCOL.md states both.
 - **Incomplete lifts.** A lift stopped for pain (section 12), cut short because he had to leave, or not reached because time ran out is not a miss. It neither progresses nor moves on the ladder, and `next` repeats.
+- **No effort rating [app rule].** A made lift with no rating, which can only come from an edit or an import, takes the smallest table row (`grind`). Power cleans and rows take the 2.5-lb jump without setting `hasBeenNotCrisp`.
 
 ## 5. Stall ladder
 
@@ -145,12 +147,15 @@ GRADUATED
 ```
 
 - The food lever is global. Once on, it stays on for the novice run and is never asked again. A power clean's food-lever repeat counts its next miss as the stall, so it goes straight to the reset.
+- **After the food lever's extra round [app rule].** If the extra round fails, `beforeReset` runs again from step 1, so a maintenance break within 14 days still holds the lift before any reset. Only the food-lever question is skipped. Power cleans still go straight to the reset, as above.
+- **One answer [app rule].** One answer to "Has recovery felt poor?" covers every lift waiting on it. The session screen asks an open question when the next session starts. If the next lifting session is logged while the question is still open, the answer counts as No.
 - "On the ladder," for the deload trigger in section 10, means a stage of `BRIDGE_SHORT`, `BRIDGE_NORMAL`, or `HOLD`, or a reset in the last 7 days. A single miss (`REPEAT`) doesn't count.
 - Light weeks, floor weeks, light squat days, and pain-return sessions never move the ladder, and a light or floor week pauses a bridge round where it stands.
 
 ## 6. Light squat day and once-a-week deadlift
 
 - **Switching on.** Each switches on for good (until that lift graduates or restarts after a long layoff) the second time in a row that a made heavy session of that lift gets a suggested jump of 5 lb or less. A made heavy session with a bigger suggested jump starts the count over. Misses and repeats don't change the count.
+- **Repeats [app rule].** A repeat is any session that ran a weight the lift had already reached: the REPEAT stage, bridge normal sets, a hold retry, a layoff or after-light-week repeat, or a repeat he chose. Only made heavy sessions that took a progression step (stage `NORMAL` and a weight above `lcw`) change the count.
 - **Light squat day.** Once on, the squat is light in the second lifting session of a calendar week whenever a third lifting session can still follow it that week (a weekday at least two days later, Friday at the latest). In a normal week that is Wednesday. The light squat is 2×5 at `percentWeight(most recent heavy squat weight, 0.80)`, with no effort rating, no progression, and no ladder effect.
 - **Once-a-week deadlift.** It can't switch on before program week 3. If its count reaches two earlier, it switches on at the start of week 3. Once on, a Workout A runs the heavy deadlift only if no heavy deadlift has been done yet that calendar week. Otherwise slot 3 runs `pullChoice`. Workout B keeps its usual slot 3.
 - Neither applies in light weeks, which have their own loads (section 10).
@@ -189,6 +194,7 @@ WEIGHTED (3 sets of 5 with a belt)
 ```
 
 - Once `step` drops to 2.5, it stays there. **[app rule]**
+- Without 5-lb steps, made with room takes off the machine's stack step (`program.json → equipment.assistMachine.stackStepLb`) instead of 5. **[app rule]**
 - **Slow lowering.** Every rep is lowered over about 3 seconds, shown as a cue.
 - **Negatives.** Chins only, in heavy sessions, while chin assistance is 50 lb or less and above 0: 2 bodyweight negatives of 3 to 5 seconds after the last chin set, on A days (or on every chin day when chins and dips are split).
 - **Effective load** on every set: the latest bodyweight minus assistance, or plus `addedLoad`.
@@ -210,13 +216,14 @@ WEIGHTED (3 sets of 5 with a belt)
 - **Default target minutes.** The phase's lower bound in its first conditioning week, then 5 more minutes each conditioning week, up to the phase's upper bound. By conditioning week: 20, 25, 30, 35, 40, 45, 50, 50, 50, 55, 60, and 60 from then on. The user can pick anything in the range.
 - **Short on time.** Any session of 20 easy minutes or more counts as a completed session. Intervals need a session of at least 30 minutes, so a shorter Thursday is easy only.
 - **Thursday intervals** sit in the middle of the session's total time: easy on the air bike, then the interval block on the SkiErg (30 seconds hard but not all-out, about 8 out of 10, then 90 seconds easy, repeated), then easy on the air bike to finish. Example: 40 minutes with 8 intervals is 12 easy, 16 of intervals, and 12 easy. Phase 4 defaults to 8 intervals, and the user can choose up to 10.
+- **Intervals are Thursday's [app rule].** Only a Thursday session has intervals. If Thursday's conditioning doesn't happen, that week has none: displaced conditioning is dropped, not moved (section 1).
 - **Machines.** "SkiErg bothers my elbows or shoulders" in Settings, or "SkiErg unavailable" for one session, moves intervals to the air bike. "Air bike unavailable" turns the easy minutes into a brisk incline treadmill walk.
 - **No intervals** in a light week, after a check-in of last night under 6 hours, or in the rest of a week cut short by illness (section 10).
 - **Flat after intervals.** The first lifting session after an interval session asks, "Flat from the intervals?" Yes halves the next interval session's rounds, rounded down.
 - **Screening gate.** Before the first session with intervals, show the screening note (`program.json → safety.screeningNote`) again and require a tap on "I've read this." Store it.
 - **Floor week:** no conditioning.
 - **Layoff [app rule].** If the last completed conditioning session was more than 21 days ago, drop one phase, to the first week of the lower phase. More than 60 days, go back to conditioning week 1.
-- **Weekly bar.** Conditioning minutes this calendar week (sessions plus after-lifting spins) against the 150-minute guideline.
+- **Weekly bar.** Conditioning minutes this calendar week (sessions plus after-lifting spins) against the 150-minute guideline. Sessions under 20 minutes still add their minutes. **[app rule]**
 - Never offer extra sessions to make up for missed ones or for food.
 
 ## 9. Warm-ups and calibration
@@ -238,6 +245,7 @@ warmups(lift, W):
 - **Rows (first appearance).** The same as the bench.
 - **Power cleans (first appearance).** The same, in sets of 3, ending with "Bar speed dropped." That set is the first of 5 work sets.
 - **Dips (first Workout B).** Before the chin-and-dip block, start with generous assistance (default: the current chin assistance) and do sets of up to 5, taking off 10 lb a set (5 lb once it feels close), until 5 solid reps leave 2 or 3 to spare, stopping at upper arms parallel. That setting is the dip assistance and its `lastMadeAssistance`, and all 3 rounds use it.
+- **A calibration day counts [app rule].** The work sets that follow a calibration are the lift's first heavy session, rated and progressed by section 4. The dip rounds after dip calibration follow section 7 the same way.
 
 ## 10. Deloads, illness, and floor weeks
 
@@ -266,6 +274,7 @@ The app suggests a light week. The user picks "Rest of this week," "Next week," 
 
 **Floor week.**
 - Declared by the user for the current calendar week, or scheduled. Christmas week (2026-12-21 to 12-25) and Holy Week (2027-03-22 to 03-26) are preloaded, and the user can remove or add weeks.
+- A floor week is its whole calendar week, Monday through Sunday, including a preloaded week's weekend. **[app rule]**
 - At most 2 lifting sessions in the week, counting any already done, on days that aren't back to back. The default days are the first two lift days.
 - Each session is the next workout in A/B order, slots 1 to 3 as they would normally run, with no chin-and-dip block: 3×5 lifts at 2×5, the deadlift at 1×5, and power cleans at 3×3, all at `lcw`. No conditioning.
 - Floor-week sessions count for alternation. Everything else is frozen, as in a light week, and the week after resumes as after a light week.
@@ -285,10 +294,10 @@ At the start of each lifting session, `daysAway` = calendar days since the last 
 | More than 60 | Start light: `lcw = percentWeight(lcw, 0.60)` by default, editable. |
 
 - Drops apply once, at the first session back, to every lift, including lifts not in that session.
-- From 8 days on, every lift's stage returns to `NORMAL`. `hasMissed`, `resetCount`, and `lastResetFrom` are kept, except after more than 60 days, which starts a fresh novice run: those are cleared, `GRADUATED` lifts return to `NORMAL`, and the light squat day and once-a-week deadlift switch off. **[app rule]**
-- Chins and dips: 6 or 7 days, repeat. 8 to 21 days, 10 lb more assistance. 22 to 60 days, 20 lb more. More than 60 days, recalibrate both as dips were calibrated on day one. In `BODYWEIGHT` or `WEIGHTED` mode, "more assistance" means taking that much off the belt first, then adding assistance in `LOAD` mode.
+- From 8 days on, every lift's stage returns to `NORMAL`, except that a `GRADUATED` lift stays graduated (section 17) and only its prefilled weight drops. `hasMissed`, `resetCount`, and `lastResetFrom` are kept, except after more than 60 days, which starts a fresh novice run: those and `hasBeenNotCrisp` are cleared, `GRADUATED` lifts return to `NORMAL`, and the light squat day and once-a-week deadlift switch off. **[app rule]**
+- Chins and dips: 6 or 7 days, repeat. 8 to 21 days, 10 lb more assistance. 22 to 60 days, 20 lb more. More than 60 days, recalibrate both as dips were calibrated on day one. Chins start that recalibration 30 lb above their old assistance, coming off the belt first, and dips start where chins do. **[app rule]** In `BODYWEIGHT` or `WEIGHTED` mode, "more assistance" means taking that much off the belt first, then adding assistance in `LOAD` mode.
 - The age bracket comes from Settings. Until it is set, use 40 and over.
-- A paused lift that returns after more than 7 days uses this table on its own, counting from its last heavy session.
+- A paused lift that returns after more than 7 days uses this table on its own, counting from its last heavy session. A session where pain stopped the lift partway counts as its last heavy session, since it ran its normal prescription (section 0). **[app rule]**
 - Travel is just time away: the walks PROTOCOL.md suggests aren't logged, and the return uses this table.
 - Conditioning after a layoff: section 8.
 
@@ -317,8 +326,9 @@ The app doesn't track food. It shows these prompts only:
 
 - **Session clock** starts at "Start session." The app projects the finish from the sets left and default rests.
 - **Over 80 minutes projected:** show the cut order, one step at a time. (1) Skip the after-lifting spin. (2) Drop one warm-up set from each remaining lift: the second empty-bar set, or for the deadlift its lowest ramp set when it has two or more. (3) Do the chin sets in the rests between press or bench sets, keeping at least 3 minutes between press or bench sets, and do the dips after the last one. Never suggest shortening squat or deadlift rests.
-- **Rest timer** starts when a work set is logged. Its default comes from the lift's effort rating at its last heavy session: light 2:00, 3–4 left 2:30, 1–2 left 3:30, grind or missed 5:00, and 2:00 with no history. Bridge short sets never get less than 5:00. The chin-and-dip block uses 1:15. Buttons add or take off 30 seconds.
+- **Rest timer** starts when a work set is logged. Its default comes from the lift's effort rating at its last heavy session: light 2:00, 3–4 left 2:30, 1–2 left 3:30, grind or missed 5:00, and 2:00 with no history. Power cleans and rows: crisp 2:30 and not crisp 3:30. **[app rule]** Bridge short sets never get less than 5:00. The chin-and-dip block uses 1:15. Buttons add or take off 30 seconds.
 - The timer runs from timestamps, so it stays right if the phone locks or the app goes to the background.
+- **Projection estimates [app rule].** 5:00 for the bike warm-up, 1:15 per warm-up set including loading, 0:45 per work set plus its rest, 2:00 to change lifts, 0:40 per chin or dip set plus 1:15 rests, and 10:00 for the spin. The projection updates from the session clock as sets are logged. Tune the estimates against logged session times.
 
 ## 15. What gets logged
 
@@ -345,6 +355,6 @@ At the end, for each lift in this order: pain stops, incomplete lifts, made or m
 - **Two sessions on the same day:** allowed, with a warning.
 - **Past-date entries:** replay from that date.
 - **Changing `pullChoice` mid-run:** the new lift starts with calibration, and the old lift's state is kept in case he switches back.
-- **Graduated lifts** stay graduated unless the user restarts that lift in Settings (logged as an override) or a layoff of more than 60 days starts a fresh run.
+- **Graduated lifts** stay graduated unless the user restarts that lift in Settings (logged as an override) or a layoff of more than 60 days starts a fresh run. A restart suggests 90% of the lift's last completed weight, which he can edit, and clears that lift's ladder history. **[app rule]**
 - **Stale bodyweight:** effective load uses the latest entry and shows its date if it is more than 14 days old.
 - **Manual overrides** of any prescription are logged as events, and the engine treats an override as that session's prescription.

@@ -1,7 +1,7 @@
-// Proposed readings for open questions (QUESTIONS.md). CLAUDE.md rule 1:
-// where RULES.md is ambiguous, the engine implements a proposed reading
-// behind a named constant until the question is answered. Numbers match
-// QUESTIONS.md.
+// Readings of RULES.md where it was ambiguous (CLAUDE.md, ground rule 1).
+// The owner decided Q1 through Q18 on 2026-11-03. Each decision is an
+// [app rule] in the RULES.md section named, and its number matches QUESTIONS.md.
+// New questions get a constant here and an entry there.
 
 export const READINGS = {
   /** Q1 (section 5, T29): a failure after the food lever's extra round still checks the maintenance-break hold first. */
@@ -26,13 +26,13 @@ export const READINGS = {
   /** Q7 (section 10): a floor week covers its whole calendar week, Monday through Sunday. */
   FLOOR_WEEK_IS_CALENDAR_WEEK: true,
 
-  /** Q8 (section 8): the interval session is Thursday's, or the week's second session if no interval session has run. */
-  INTERVALS_ON_THURSDAY_OR_SECOND_SESSION: true,
+  /** Q8 (section 8, T95): only Thursday's session has intervals. A week with no Thursday session has none. */
+  INTERVALS_ON_THURSDAY_ONLY: true,
 
   /** Q9 (section 5): one food-lever answer applies to every lift waiting on the question. */
   FOOD_LEVER_ANSWER_APPLIES_TO_ALL_PENDING: true,
 
-  /** Q10 (section 5): a food-lever question still unanswered at the lift's next session is treated as No. */
+  /** Q10 (section 5): a food-lever question still unanswered when the next lifting session is logged counts as No. */
   UNANSWERED_FOOD_LEVER_IS_NO: true,
 
   /** Q11 (section 4): a made lift with no effort rating takes the smallest table row (cleans and rows: the 2.5-lb jump). */
@@ -41,8 +41,8 @@ export const READINGS = {
   /** Q12 (section 7): without 5-lb assistance steps, "made with room" takes off the machine's stack step. */
   NO_FIVE_LB_STEPS_USE_STACK_STEP: true,
 
-  /** Q13 (section 11): after more than 60 days, chins recalibrate starting this much above their old setting. */
-  CHIN_RECALIBRATION_EXTRA_LB: 20,
+  /** Q13 (section 11, T96): after more than 60 days, chins recalibrate starting this much above their old setting, belt off first. */
+  CHIN_RECALIBRATION_EXTRA_LB: 30,
 
   /** Q14 (sections 11 and 17): an 8-to-60-day layoff keeps a graduated lift graduated and drops only its prefill. */
   GRADUATED_SURVIVES_SHORT_LAYOFF: true,
@@ -55,6 +55,9 @@ export const READINGS = {
 
   /** Q17 (sections 3 and 17): the restart weight the Lifts screen suggests for a graduated lift, as a fraction of its last weight. */
   RESTART_SUGGESTED_FRACTION: 0.9,
+
+  /** Q19 (sections 5 and 13), open: the early-stall note clears once that lift's stall ends or the food lever turns on. */
+  EARLY_STALL_NOTE_ENDS_WITH_STALL: true,
 
   /** Q18 (section 14): time projection estimates, in seconds. */
   BIKE_WARMUP_SEC: 300,

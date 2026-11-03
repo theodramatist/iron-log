@@ -2,7 +2,6 @@
 // Unless a scenario gives a date, sessions fall in January and early February
 // 2027: program week 10 or later, with no maintenance break within 14 days.
 import { describe, expect, it } from 'vitest';
-import { READINGS } from '../src/engine/readings';
 import { PROGRAM, buildLog, made, madeAt, missed, missedAt, type Log } from './helpers/log';
 
 const kinds = (log: Log, kind: string) => log.suggestions().filter((s) => s.kind === kind);
@@ -243,18 +242,16 @@ describe('§5 Stall ladder', () => {
     expect(yes.state('deadlift')).toMatchObject({ next: { weight: 285, sets: 1, reps: 5 } });
     yes.lift('2026-12-09').lift('2026-12-11', { deadlift: missed() });
 
-    // QUESTIONS.md Q1: on a normal schedule the round fails on 12-11, inside
-    // the 14 days before the December 21 break, so the hold comes first.
-    if (READINGS.HOLD_CHECK_AFTER_FOOD_LEVER_ROUND) {
-      expect(yes.state('deadlift')).toMatchObject({ stage: 'HOLD', holdUntil: '2026-12-21' });
-      yes
-        .lift('2026-12-14')
-        .lift('2026-12-16', { deadlift: made() })
-        .lift('2026-12-18')
-        .lift('2026-12-21', { deadlift: made() }) // floor session
-        .lift('2026-12-23') // floor session
-        .lift('2026-12-28', { deadlift: missed() }); // the retry
-    }
+    // Q1: the round fails on 12-11, inside the 14 days before the
+    // December 21 break, so the hold comes first.
+    expect(yes.state('deadlift')).toMatchObject({ stage: 'HOLD', holdUntil: '2026-12-21' });
+    yes
+      .lift('2026-12-14')
+      .lift('2026-12-16', { deadlift: made() })
+      .lift('2026-12-18')
+      .lift('2026-12-21', { deadlift: made() }) // floor session
+      .lift('2026-12-23') // floor session
+      .lift('2026-12-28', { deadlift: missed() }); // the retry
     expect(yes.state('deadlift')).toMatchObject({ stage: 'NORMAL', lcw: 255, resetCount: 1 });
     expect(kinds(yes, 'foodLever')).toHaveLength(0);
   });
@@ -401,6 +398,51 @@ describe('§5 Stall ladder', () => {
     log.lift('2026-12-04').lift('2026-12-07', { powerClean: missed() });
     expect(log.state('powerClean')).toMatchObject({ stage: 'NORMAL', lcw: 120, resetCount: 1 });
     expect(kinds(log, 'foodLever')).toHaveLength(0);
+  });
+
+  // Two lifts waiting on "Has recovery felt poor?" at once. B days are left empty.
+  function twoPending(): Log {
+    return buildLog()
+      .lift('2026-11-04')
+      .lift('2026-11-06')
+      .lift('2026-11-09')
+      .lift('2026-11-11', { press: madeAt(100, 'rir3to4'), deadlift: madeAt(250, 'rir3to4') }) // A
+      .lift('2026-11-13')
+      .lift('2026-11-16', { press: missedAt(105), deadlift: missedAt(265) }) // A: REPEAT
+      .lift('2026-11-18')
+      .lift('2026-11-20', { press: missed(), deadlift: missed() }) // A: stall, BRIDGE_SHORT
+      .lift('2026-11-23')
+      .lift('2026-11-25', { press: missed(), deadlift: missed() }); // A: short sets missed, so ask
+  }
+
+  it('Q9 One answer covers every lift waiting on it', () => {
+    const asked = twoPending();
+    expect(kinds(asked, 'foodLever').map((s) => s.lift)).toEqual(['press', 'deadlift']);
+
+    const yes = twoPending().foodLever('2026-11-25', 'press', true);
+    expect(yes.program().foodLeverOn).toBe(true);
+    expect(yes.state('press')).toMatchObject({ stage: 'BRIDGE_SHORT', pendingFoodLever: null, next: { weight: 105, sets: 5, reps: 3 } });
+    expect(yes.state('deadlift')).toMatchObject({ stage: 'BRIDGE_SHORT', pendingFoodLever: null, next: { weight: 265, sets: 2, reps: 3 } });
+    expect(kinds(yes, 'foodLever')).toHaveLength(0);
+  });
+
+  it('Q10 An open question counts as No once the next lifting session is logged', () => {
+    const lapsed = twoPending().lift('2026-11-27'); // B: neither lift runs
+    expect(lapsed.program().foodLeverOn).toBe(false);
+    expect(lapsed.state('press')).toMatchObject({ stage: 'NORMAL', lcw: 92.5, resetCount: 1 });
+    expect(lapsed.state('deadlift')).toMatchObject({ stage: 'NORMAL', lcw: 235, resetCount: 1 });
+    expect(kinds(lapsed, 'foodLever')).toHaveLength(0);
+
+    // Answered when that session starts, the answer stands.
+    const answered = twoPending().foodLever('2026-11-27', 'press', true).lift('2026-11-27');
+    expect(answered.state('press')).toMatchObject({ stage: 'BRIDGE_SHORT', resetCount: 0 });
+    expect(answered.state('deadlift')).toMatchObject({ stage: 'BRIDGE_SHORT', resetCount: 0 });
+  });
+
+  it('Q19 The early-stall note lasts as long as its stall', () => {
+    expect(kinds(twoPending(), 'earlyStall').map((s) => s.lift)).toEqual(['press', 'deadlift']);
+    expect(kinds(twoPending().foodLever('2026-11-25', 'press', true), 'earlyStall')).toHaveLength(0);
+    expect(kinds(twoPending().lift('2026-11-27'), 'earlyStall')).toHaveLength(0);
   });
 });
 

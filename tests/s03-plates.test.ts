@@ -71,4 +71,13 @@ describe('§3 Loads, plates, and rounding', () => {
       [95, 2, [25]],
     ]);
   });
+
+  it('Q4 Mixed work weights count as the lowest', () => {
+    const log = buildLog().lift('2026-11-04', { squat: made('rir1to2') });
+    expect(log.state('squat')).toMatchObject({ lcw: 105, next: { weight: 110 } });
+    log.edit(log.sessionOn('2026-11-04'), (e) => {
+      e.lifts.find((l) => l.lift === 'squat')!.sets[2]!.weight = 100;
+    });
+    expect(log.state('squat')).toMatchObject({ lcw: 100, next: { weight: 105 } });
+  });
 });

@@ -1,7 +1,6 @@
 // RULES.md section 14: time budget and rest timer.
 import { describe, expect, it } from 'vitest';
 import { restDefaultSec, timeGuard, timerRemainingSec, type SessionProgress } from '../src/engine';
-import { READINGS } from '../src/engine/readings';
 import { PROGRAM, buildLog, plusDays } from './helpers/log';
 
 const empty: SessionProgress = { bikeDone: false, warmupsDone: {}, workSetsDone: {}, assistSetsDone: 0, spinDone: false };
@@ -16,8 +15,8 @@ describe('§14 Time budget and rest timer', () => {
     expect(restDefaultSec('rir3to4', {}, PROGRAM)).toBe(150);
     expect(restDefaultSec('grind', {}, PROGRAM)).toBe(300);
     expect(restDefaultSec('missed', {}, PROGRAM)).toBe(300);
-    expect(restDefaultSec('crisp', {}, PROGRAM)).toBe(READINGS.REST_CRISP_SEC);
-    expect(restDefaultSec('notCrisp', {}, PROGRAM)).toBe(READINGS.REST_NOT_CRISP_SEC);
+    expect(restDefaultSec('crisp', {}, PROGRAM)).toBe(150); // Q3
+    expect(restDefaultSec('notCrisp', {}, PROGRAM)).toBe(210);
 
     const plan = buildLog({ setup: { squat: 'rir1to2' } }).plan('2026-11-04');
     expect(plan.lifts.find((l) => l.lift === 'squat')?.restSec).toBe(210);

@@ -54,8 +54,36 @@ export function replay(input: EngineInput, through?: LocalDate): EngineState {
     if (ev.type === 'setup') continue;
     if (through !== undefined && ev.date > through) break;
     applyEvent(st, ev);
+    pruneSuggestions(st);
   }
   return st;
+}
+
+const STALL_STAGES = new Set<LiftState['stage']>(['BRIDGE_SHORT', 'BRIDGE_NORMAL', 'HOLD']);
+
+/**
+ * Drop suggestions whose condition has ended: an answered or lapsed
+ * food-lever question, a graduation note for a lift that has restarted, and
+ * (Q19) an early-stall note once its stall is over or the food lever is on.
+ */
+function pruneSuggestions(st: EngineState): void {
+  st.suggestions = st.suggestions.filter((s) => {
+    const l = s.lift && s.lift in st.lifts ? st.lifts[s.lift as keyof typeof st.lifts] : null;
+    if (!l) return true;
+    switch (s.kind) {
+      case 'foodLever':
+        return l.pendingFoodLever !== null;
+      case 'graduation':
+        return l.stage === 'GRADUATED';
+      case 'earlyStall':
+        return (
+          !READINGS.EARLY_STALL_NOTE_ENDS_WITH_STALL ||
+          (!st.foodLever.on && (STALL_STAGES.has(l.stage) || l.pendingFoodLever !== null))
+        );
+      default:
+        return true;
+    }
+  });
 }
 
 // ------------------------------------------------------------ helpers
@@ -137,8 +165,10 @@ export function applyMissedTraining(
     for (const k of ['chin', 'dip'] as const) if (!assist[k]!.needsCalibration) assist[k] = addAssistance(assist[k]!, more);
     return;
   }
+  // Q13: 30 lb more help than before, taken off the belt first.
   const chin = assist.chin!;
-  const start = (chin.mode === 'LOAD' || chin.mode === 'REPS_BUILD' ? chin.assistance : 0) + READINGS.CHIN_RECALIBRATION_EXTRA_LB;
+  const more = addAssistance(chin, READINGS.CHIN_RECALIBRATION_EXTRA_LB);
+  const start = more.mode === 'LOAD' || more.mode === 'REPS_BUILD' ? more.assistance : 0;
   assist.chin = { ...chin, needsCalibration: true, calibrationStart: start };
   assist.dip = { ...assist.dip!, needsCalibration: true, calibrationStart: start };
 }
@@ -208,9 +238,6 @@ export function applyEvent(st: EngineState, ev: AnyEvent): void {
       const ctx = liftCtx(st, ev.date);
       const targets = READINGS.FOOD_LEVER_ANSWER_APPLIES_TO_ALL_PENDING ? BARBELL_LIFTS : [ev.lift];
       for (const lift of targets) resolveFoodLever(st.lifts[lift], ev.answer, ctx);
-      st.suggestions = st.suggestions.filter(
-        (s) => s.kind !== 'foodLever' || (s.lift && st.lifts[s.lift as keyof typeof st.lifts]?.pendingFoodLever),
-      );
       return;
     }
     case 'illness':

@@ -163,7 +163,7 @@ Food logging, accounts, sync, multiple users, Apple Health or Apple Watch, push 
 
 ## 10. Acceptance criteria
 
-1. `npm test` passes every scenario in TEST_SCENARIOS.md (T01 through T94), and every RULES.md section has at least one test.
+1. `npm test` passes every scenario in TEST_SCENARIOS.md (T01 through T96), and every RULES.md section has at least one test.
 2. `src/engine/` imports nothing from the DOM, storage, or the clock.
 3. `npm run build` produces static files that deploy to an HTTPS host.
 4. On an iPhone with iOS 18.4 or later: it installs from Safari, opens full screen, works in airplane mode after the first launch, and keeps its data after the app is closed and the phone restarts.

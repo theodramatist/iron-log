@@ -1,7 +1,7 @@
 // RULES.md section 6: the light squat day and the once-a-week deadlift.
 import { describe, expect, it } from 'vitest';
 import type { SessionPlan } from '../src/engine';
-import { buildLog, made, madeAt } from './helpers/log';
+import { buildLog, made, madeAt, missed } from './helpers/log';
 
 const slot3 = (p: SessionPlan) => p.lifts.find((l) => l.slot === 3)?.lift;
 
@@ -103,5 +103,14 @@ describe('§6 Light squat day and once-a-week deadlift', () => {
     expect(slot3(log.plan('2026-11-16'))).toBe('deadlift');
     log.lift('2026-11-16', { deadlift: made('grind') }).lift('2026-11-18');
     expect(slot3(log.plan('2026-11-20'))).toBe('row');
+  });
+
+  it('Q2 Repeats leave the count alone', () => {
+    const log = buildLog({ setup: { squat: 'rir1to2' } }); // Monday's 95 earned a 5-lb jump: one
+    log.lift('2026-11-04', { squat: missed() }); // missed at 100
+    log.lift('2026-11-06', { squat: made('rir1to2') }); // the repeat at 100, made
+    expect(log.state('squat')).toMatchObject({ lcw: 100, next: { weight: 102.5 }, lightDayOn: false });
+    log.lift('2026-11-09', { squat: made('rir1to2') }); // a progression step to 102.5: two
+    expect(log.state('squat')).toMatchObject({ lcw: 102.5, smallJumpReachedOn: '2026-11-09', lightDayOn: true });
   });
 });

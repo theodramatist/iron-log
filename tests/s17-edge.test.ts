@@ -76,8 +76,12 @@ describe('§17 Edge cases', () => {
     log.lift('2027-02-22').lift('2027-02-26', { press: made() });
     expect(log.state('press')).toMatchObject({ stage: 'GRADUATED', lastCompleted: { weight: 92.5, sets: 3, reps: 5 } });
 
+    const graduationNotes = () => log.suggestions().filter((s) => s.kind === 'graduation' && s.lift === 'press');
+    expect(graduationNotes()).toHaveLength(1);
+
     log.override('2027-02-27', 'press', 'restart', 92.5, { reason: 'Restarting the press' });
     expect(log.state('press')).toMatchObject({ stage: 'NORMAL', lcw: 92.5 });
+    expect(graduationNotes()).toHaveLength(0);
     log.lift('2027-03-01');
     expect(log.liftPlan('2027-03-05', 'press')).toMatchObject({ kind: 'heavy', weight: 92.5 });
   });

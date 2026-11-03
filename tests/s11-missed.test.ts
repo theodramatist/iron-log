@@ -116,13 +116,15 @@ describe('§11 Missed training', () => {
     const base = () => buildLog().lift('2027-01-08', {}, { workout: 'B' }).override('2027-01-08', 'chin', 'assistance', 120);
     expect(base().plan('2027-01-18').assist?.chin?.assistance).toBe(130);
     expect(base().plan('2027-02-07').assist?.chin?.assistance).toBe(140);
-    const long = base().plan('2027-03-24');
-    expect(long.assist?.chin?.calibration).not.toBeNull();
-    expect(long.assist?.dip?.calibration).not.toBeNull();
+    // 75 days after 01-08 falls in Holy Week, a floor week with no chins or dips,
+    // so the long layoff counts from a session on 01-13.
+    const long = base().lift('2027-01-13').plan('2027-03-29');
+    expect(long.assist?.chin?.calibration).toBeTruthy();
+    expect(long.assist?.dip?.calibration).toBeTruthy();
     const dipped = buildLog()
       .lift('2026-11-04', { dip: cd.calibrate(120, 2) })
       .plan('2027-01-25');
-    expect(dipped.assist?.dip?.calibration).not.toBeNull();
+    expect(dipped.assist?.dip?.calibration).toBeTruthy();
   });
 
   it('T70 Paused for two weeks', () => {
@@ -143,5 +145,67 @@ describe('§11 Missed training', () => {
     // Age bracket unset: 10% for 8 to 21 days, then the 90% return session.
     expect(plan.lifts.find((l) => l.lift === 'press')).toMatchObject({ kind: 'painReturn', weight: 80, sets: 3, reps: 5 });
     expect(plan.lifts.find((l) => l.lift === 'squat')?.weight).toBe(squatNext);
+  });
+
+  it('T96 Chins recalibrate from 30 lb more', () => {
+    // 2027-01-13 to 03-29 is 75 days.
+    const at120 = buildLog()
+      .lift('2027-01-08', {}, { workout: 'B' })
+      .override('2027-01-08', 'chin', 'assistance', 120)
+      .lift('2027-01-13');
+    const plan = at120.plan('2027-03-29');
+    expect(plan.assist?.chin?.calibration?.start).toBe(150);
+    expect(plan.assist?.dip?.calibration?.start).toBe(150);
+
+    const belted = buildLog()
+      .lift('2027-01-08', {}, { workout: 'B' })
+      .override('2027-01-08', 'chin', 'assistance', 0)
+      .lift('2027-01-11', { chin: cd.reps([5, 5, 5]) })
+      .lift('2027-01-13', { chin: cd.made(0) });
+    expect(belted.assist('chin')).toMatchObject({ mode: 'WEIGHTED', addedLoad: 5 });
+    expect(belted.plan('2027-03-29').assist?.chin?.calibration?.start).toBe(25);
+  });
+
+  // The press graduates at 95 on 2027-02-19, its last completed weight 92.5.
+  function graduatedPress(): Log {
+    return buildLog()
+      .lift('2027-01-04')
+      .lift('2027-01-08', { press: madeAt(100, 'rir3to4') })
+      .lift('2027-01-11')
+      .lift('2027-01-15', { press: missedAt(105) })
+      .lift('2027-01-18')
+      .lift('2027-01-22', { press: missedAt(105) })
+      .lift('2027-01-25')
+      .lift('2027-01-29', { press: missed() }) // reset to 92.5
+      .lift('2027-02-01')
+      .lift('2027-02-05', { press: made('rir1to2') })
+      .lift('2027-02-08')
+      .lift('2027-02-12', { press: missed() })
+      .lift('2027-02-15')
+      .lift('2027-02-19', { press: missed() });
+  }
+
+  it('Q14 A graduated lift stays graduated through a short layoff', () => {
+    const log = graduatedPress();
+    expect(log.state('press')).toMatchObject({ stage: 'GRADUATED', lastCompleted: { weight: 92.5 } });
+    log.lift('2027-03-01'); // 10 days away
+    expect(log.state('press')?.stage).toBe('GRADUATED');
+    expect(log.liftPlan('2027-03-03', 'press')).toMatchObject({ kind: 'graduated', weight: 82.5, sets: 3, reps: 5 });
+
+    // More than 60 days starts a fresh run, and the graduation note goes with it.
+    const fresh = graduatedPress().lift('2027-04-26');
+    expect(fresh.state('press')?.stage).toBe('NORMAL');
+    expect(fresh.suggestions().some((s) => s.kind === 'graduation')).toBe(false);
+  });
+
+  it('Q16 A fresh run clears "not crisp"', () => {
+    const log = buildLog();
+    for (const d of ['2026-11-04', '2026-11-06', '2026-11-09', '2026-11-11', '2026-11-13', '2026-11-16']) log.lift(d);
+    log.lift('2026-11-18', { row: madeAt(135, 'notCrisp') });
+    expect(log.state('row')).toMatchObject({ hasBeenNotCrisp: true, next: { weight: 137.5 } });
+    log.lift('2027-02-01'); // 75 days away
+    expect(log.state('row')).toMatchObject({ hasBeenNotCrisp: false, lcw: 80 });
+    log.lift('2027-02-03', { row: made('crisp') });
+    expect(log.state('row')).toMatchObject({ lcw: 80, next: { weight: 85 } });
   });
 });

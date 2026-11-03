@@ -77,7 +77,7 @@ Unless a scenario gives a date, assume program week 10 or later and no maintenan
 
 **T28 · A hold that spans a floor week (§5, §10).** Given a lift's bridge failing on Wednesday 2026-12-09 (program week 6, 12 days before the December 21 break). Then the stage is `HOLD`, and no food-lever question is asked, because the hold comes first. The Christmas floor-week sessions aren't heavy, so the retry is Monday 2026-12-28.
 
-**T29 · Food lever (§5, §13).** Given a deadlift bridge at 285 that fails on Wednesday 2026-12-02 (program week 5, break 19 days away). Then the app asks "Has recovery felt poor?" Yes: the food lever turns on, the deadlift gets one more round (2×3 at 285, then 1×5 at 285), and every lifting-day card adds "Second Shake today (your eating plan's lever)." If that round fails, the deadlift resets to 255 with no question. A later lift reaching a reset in weeks 1–8 isn't asked again. Had the answer been No, the deadlift would reset to 255 at once.
+**T29 · Food lever (§5, §13).** Given a deadlift bridge at 285 that fails on Wednesday 2026-12-02 (program week 5, break 19 days away). Then the app asks "Has recovery felt poor?" Yes: the food lever turns on, the deadlift gets one more round (2×3 at 285, then 1×5 at 285), and every lifting-day card adds "Second Shake today (your eating plan's lever)." If that round fails, the deadlift resets to 255 with no question. On a normal schedule the round ends Friday, December 11, inside the 14 days before the December 21 break, so the deadlift holds first (§5, after the food lever's extra round) and resets when the December 28 retry fails. A later lift reaching a reset in weeks 1–8 isn't asked again. Had the answer been No, the deadlift would reset to 255 at once.
 
 **T30 · Early-stall note (§5, §13).** When a lift enters `BRIDGE_SHORT` on 2026-11-30 (program week 5), the early-stall note shows. When one enters it on 2027-01-04 (week 10), no note shows.
 
@@ -141,6 +141,8 @@ Unless a scenario gives a date, assume program week 10 or later and no maintenan
 
 **T88 · Short sessions (§8).** A 20-minute Tuesday counts as a completed session. A 25-minute Thursday counts, has no intervals, and the interval block is hidden. A 15-minute session is logged but doesn't count.
 
+**T95 · Intervals stay on Thursday (§8).** Given conditioning week 3 (phase 2). With Tuesday's session done and Thursday swapped to lifting, a Friday conditioning session is easy only. With Monday swapped to conditioning and Tuesday's session done, the week has no intervals. With Tuesday missed, Thursday still has its 6 intervals.
+
 ## Warm-ups and calibration
 
 **T53 · Warm-ups (§9).** Squat 95: bar×5, bar×5, 65×3, 80×2. Squat 115: bar×5, bar×5, 60×5, 80×3, 95×2. Press 67.5: bar×5, bar×5, 55×2. Deadlift 155: 135×5. Deadlift 175: 135×5, 145×2. Squat 250: bar×5, bar×5, 100×5, 135×5, 175×3, 210×2. Deadlift 330: 135×5, 180×5, 230×3, 280×2.
@@ -189,6 +191,8 @@ Unless a scenario gives a date, assume program week 10 or later and no maintenan
 **T65 · Age bracket unset (§11).** With no age bracket set, the 8-to-21-day drop is 10%.
 
 **T66 · Chins after a layoff (§11).** Given chins at 120. After 10 days away they are at 130, after 30 days at 140, and after 75 days both chins and dips recalibrate.
+
+**T96 · Chins recalibrate from 30 lb more (§11).** Given chins at 120 assistance. After 75 days away, chin recalibration starts at 150, and dip calibration starts there too. With chins weighted at 5 lb on the belt, it starts at 25.
 
 ## Pain and safety
 

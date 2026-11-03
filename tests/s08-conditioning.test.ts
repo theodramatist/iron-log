@@ -128,4 +128,26 @@ describe('§8 Conditioning', () => {
     expect(log.day('2026-12-22').kind).toBe('off');
     expect(log.day('2026-12-24').kind).toBe('off');
   });
+
+  it('T95 Intervals stay on Thursday', () => {
+    const base = () => buildLog().condWeek('2026-11-02').condWeek('2026-11-09').ack('2026-11-16');
+    // Tuesday missed: Thursday keeps its 6.
+    expect(base().cplan('2026-11-19')).toMatchObject({ conditioningWeek: 3, phase: 2, intervals: 6 });
+
+    // Tuesday done, Thursday swapped to lifting: Friday's conditioning is easy only.
+    const swapped = base().cond('2026-11-17').lift('2026-11-19');
+    expect(swapped.day('2026-11-20').swapTo).toBe('conditioning');
+    expect(swapped.cplan('2026-11-20')).toMatchObject({ conditioningWeek: 3, intervals: 0, layout: null, machines: { intervals: null } });
+
+    // Monday swapped to conditioning, Tuesday done: no session that week has intervals.
+    const early = base().cond('2026-11-16').cond('2026-11-17');
+    const planned = early.events.flatMap((e) => (e.type === 'conditioningSession' && e.date >= '2026-11-16' ? [e.intervalsPlanned] : []));
+    expect(planned).toEqual([0, 0]);
+    expect(early.day('2026-11-19')).toMatchObject({ kind: 'off', conditioning: null });
+  });
+
+  it('Q5 Short sessions still add to the weekly bar', () => {
+    const log = buildLog().cond('2026-11-10', { minutes: 15 }).cond('2026-11-12', { minutes: 25 });
+    expect(log.week('2026-11-09', '2026-11-13')).toMatchObject({ conditioningMinutes: 40, conditioningDone: 1 });
+  });
 });

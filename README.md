@@ -10,9 +10,9 @@ An iPhone app that runs the Retraining Protocol for one lifter. It tells you wha
 | `SPEC.md` | What the app looks like, how it's built, and how to tell it's finished |
 | `RULES.md` | Every decision the app makes, written precisely enough to code |
 | `program.json` | The numbers behind the rules: jumps, percentages, dates, and phases |
-| `TEST_SCENARIOS.md` | 94 worked cases the app must get right |
+| `TEST_SCENARIOS.md` | 96 worked cases the app must get right |
 | `PROTOCOL.md` | The audited Retraining Protocol, as you read it |
-| `QUESTIONS.md` | Open questions from the build, each with the reading the app uses now |
+| `QUESTIONS.md` | Questions from the build and how each was decided |
 | `src/engine/` | The rules engine: pure TypeScript, tested against every scenario |
 | `src/data/` | On-phone storage, backups, and drafts |
 | `tests/` | One test file per RULES.md section, named by scenario ID |

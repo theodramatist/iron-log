@@ -100,4 +100,17 @@ describe('§9 Warm-ups and calibration', () => {
     expect(logged?.reps).toEqual([5, 5, 5]);
     expect(log.assist('dip')).toMatchObject({ needsCalibration: false, lastMadeAssistance: 120 });
   });
+
+  it('Q6 A calibration day is the first heavy session', () => {
+    const ramp: [number, 'fast' | 'slowing' | 'slowed'][] = [
+      [45, 'fast'],
+      [65, 'fast'],
+      [85, 'fast'],
+      [105, 'slowing'],
+      [115, 'slowed'],
+    ];
+    const log = buildLog().lift('2026-11-04', { bench: calibrate(ramp, { effort: 'rir1to2' }), dip: cd.calibrate(120, 2) });
+    expect(log.state('bench')).toMatchObject({ lcw: 115, next: { weight: 120 } });
+    expect(log.assist('dip')).toMatchObject({ assistance: 115, lastMadeAssistance: 120 });
+  });
 });

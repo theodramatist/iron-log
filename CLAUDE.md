@@ -7,7 +7,7 @@ You are building **Iron Log**, an offline iPhone home-screen web app for one lif
 1. `SPEC.md`: what to build, the stack, screens, iPhone requirements, and acceptance criteria.
 2. `RULES.md`: every decision the engine makes. This is the authority.
 3. `program.json`: the constants RULES.md uses.
-4. `TEST_SCENARIOS.md`: T01 through T94, the tests the engine must pass.
+4. `TEST_SCENARIOS.md`: T01 through T96, the tests the engine must pass.
 5. `PROTOCOL.md`: the plan as the lifter reads it. Use it for context and wording, not for rules.
 
 ## Ground rules
@@ -56,4 +56,4 @@ The owner set these on 2026-11-03. They apply on top of the milestones, and they
 7. **Units.** Pounds only. Kilograms are a SPEC.md non-goal.
 8. **No migration.** Don't import the old app's `ironlog.v1` data. Before the M6 deploy replaces the old app, remind the owner to export a backup from it: open the old Iron Log from the Home Screen, tap Setup, tap "Copy my data (backup)," and paste the result somewhere safe.
 9. **Past-date entries.** Sessions done before launch will be entered as past-date entries (RULES.md §17), so the UI must let him log a session for an earlier date.
-10. **Open questions.** The proposed readings in QUESTIONS.md stand until the owner answers them.
+10. **Decisions.** The owner answered Q1 through Q18 on 2026-11-03. They live in RULES.md as **[app rule]** entries, with values in `src/engine/readings.ts`. New questions go in QUESTIONS.md the same way.

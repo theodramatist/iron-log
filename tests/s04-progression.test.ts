@@ -101,4 +101,22 @@ describe('§4 Barbell progression', () => {
       .lift('2026-11-06', { squat: missedAt(210) });
     expect(log.liftPlan('2026-11-09', 'squat', { checkIns: { lastNightUnder6: true } }).weight).toBe(210);
   });
+
+  it('Q11 A made lift with no effort rating takes the smallest row', () => {
+    const squat = buildLog().lift('2026-11-04', { squat: made('rir3to4') });
+    expect(squat.state('squat')?.next?.weight).toBe(115);
+    squat.edit(squat.sessionOn('2026-11-04'), (e) => {
+      delete e.lifts.find((l) => l.lift === 'squat')!.effort;
+    });
+    expect(squat.state('squat')).toMatchObject({ lcw: 105, next: { weight: 107.5 } });
+
+    const row = buildLog();
+    for (const d of ['2026-11-04', '2026-11-06', '2026-11-09', '2026-11-11', '2026-11-13', '2026-11-16']) row.lift(d);
+    row.lift('2026-11-18', { row: madeAt(135, 'crisp') }).lift('2026-11-20').lift('2026-11-23', { row: made('crisp') });
+    expect(row.state('row')?.next?.weight).toBe(145);
+    row.edit(row.sessionOn('2026-11-23'), (e) => {
+      delete e.lifts.find((l) => l.lift === 'row')!.effort;
+    });
+    expect(row.state('row')).toMatchObject({ lcw: 140, next: { weight: 142.5 }, hasBeenNotCrisp: false });
+  });
 });

@@ -1,7 +1,7 @@
 // RULES.md section 7: chins and dips.
 import { describe, expect, it } from 'vitest';
 import { spreadReps } from '../src/engine';
-import { buildLog, cd } from './helpers/log';
+import { PROGRAM, buildLog, cd } from './helpers/log';
 
 describe('§7 Chins and dips', () => {
   it('T38 Wednesday’s chins', () => {
@@ -102,5 +102,13 @@ describe('§7 Chins and dips', () => {
     const early = log.plan('2026-11-04').assist?.dip?.cues ?? [];
     expect(early.join(' ')).toContain('Lower until your upper arms are parallel to the floor, and no deeper.');
     expect(log.plan('2026-11-04').assist?.chin?.cues.join(' ')).toMatch(/3 seconds/);
+  });
+
+  it('Q12 Without 5-lb steps, made with room takes off the stack step', () => {
+    // Monday's chins: 160 with 2 to spare.
+    expect(buildLog().assist('chin', '2026-11-03').assistance).toBe(155);
+    const stack = buildLog({ setup: { assistFiveLbSteps: false } });
+    expect(stack.assist('chin', '2026-11-03').assistance).toBe(160 - PROGRAM.equipment.assistMachine.stackStepLb);
+    expect(stack.plan('2026-11-04').assist?.chin?.assistance).toBe(150);
   });
 });

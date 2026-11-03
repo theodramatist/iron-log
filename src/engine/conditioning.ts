@@ -45,13 +45,9 @@ export function condLayoff(
   return { cond, drop: 'none' };
 }
 
-/** Thursday's session gets the intervals, or the week's second session if none have run yet. */
-export function isIntervalDay(st: EngineState, date: LocalDate): boolean {
-  if (weekdayIndex(date) === 3) return true;
-  if (!READINGS.INTERVALS_ON_THURSDAY_OR_SECOND_SESSION) return false;
-  const ws = weekStart(date);
-  const earlier = st.condSessions.filter((c) => c.counted && weekStart(c.date) === ws && c.date <= date);
-  return earlier.length === 1 && !earlier.some((c) => c.intervalsDone > 0);
+/** Only Thursday's session has intervals (Q8). Displaced conditioning is dropped, not moved, so it never carries them. */
+export function isIntervalDay(date: LocalDate): boolean {
+  return READINGS.INTERVALS_ON_THURSDAY_ONLY && weekdayIndex(date) === 3;
 }
 
 export function conditioningPlan(
@@ -71,7 +67,7 @@ export function conditioningPlan(
 
   let intervals = 0;
   let reason: string | null = null;
-  if (ph.intervalsDefault > 0 && isIntervalDay(st, date)) {
+  if (ph.intervalsDefault > 0 && isIntervalDay(date)) {
     if (weekType === 'floor') reason = 'Floor week: no conditioning.';
     else if (weekType === 'light') reason = 'Light week: easy minutes only.';
     else if (opts.shortNight) reason = 'Last night was under 6 hours: easy minutes only.';
