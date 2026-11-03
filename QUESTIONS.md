@@ -4,7 +4,23 @@ Open questions from building the app (CLAUDE.md, ground rule 1). Each answer is 
 
 ## Open
 
-None.
+The M3 audit (`docs/AUDIT-M3.md`) raised these two. To answer, reply in chat ("Q20: keep it"). Each reading gets its constant and tests when it's built, and until then the engine works as described under **Problem**.
+
+### Q20. A first calibration that falls in a light or floor week (§2, §9, §10)
+
+**Problem.** Bench, rows, cleans, and dips calibrate the first time they appear, and a calibration day counts as the lift's first heavy session (§9, Q6). But nothing progresses in a light or floor week (§10). When a lift's first appearance falls in one of those weeks, the two rules collide. Today the calibration runs: the row's first Workout B in week 3, inside a light week, ramps to a heavy set and sets the row's starting weight and next jump (audit finding H2).
+
+**Reading.** In a light or floor week, a lift that still needs calibration sits out, with the note "Calibrates at its first session of a normal week," and calibrates then. Chin and dip calibrations stay as they are: they look for a setting with reps to spare, and a light week doesn't progress them.
+
+**Constant.** `CALIBRATION_WAITS_FOR_NORMAL_WEEK = true`.
+
+### Q21. A pain return that falls in a light or floor week (§10, §12)
+
+**Problem.** A lift back from a pain stop "runs one session of its normal sets" at 90% (§12). In a light week the other lifts run 2×5 at 90%, and in a floor week 2×5 at `lcw`. Today the returning lift runs its normal sets, 3×5 at 90%, in either week, so it does more than anything else that week (audit finding M1).
+
+**Reading.** The return session takes the week's set count at the return weight: 2×5 at 90% (1×5 for the deadlift and 3×3 for cleans). It still counts as the return, and the lift resumes its prescription afterward.
+
+**Constant.** `PAIN_RETURN_TAKES_WEEK_SETS = true`.
 
 ## Answered
 

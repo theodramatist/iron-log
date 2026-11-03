@@ -19,6 +19,7 @@ An iPhone app that runs the Retraining Protocol for one lifter. It tells you wha
 | `tests/` | One test file per RULES.md section, named by scenario ID |
 | `e2e/smoke.mjs` | A browser walk through the first week, checked against the engine |
 | `docs/AUDIT.md` | The audit of the original Iron Log, which this rework replaced |
+| `docs/AUDIT-M3.md` | The audit of the rebuilt app at M3, with findings ranked by severity |
 
 ## Working on it
 
