@@ -440,9 +440,28 @@ describe('§5 Stall ladder', () => {
   });
 
   it('Q19 The early-stall note lasts as long as its stall', () => {
+    // Waiting on the question, the stall goes on. The lever or a reset ends it.
     expect(kinds(twoPending(), 'earlyStall').map((s) => s.lift)).toEqual(['press', 'deadlift']);
     expect(kinds(twoPending().foodLever('2026-11-25', 'press', true), 'earlyStall')).toHaveLength(0);
     expect(kinds(twoPending().lift('2026-11-27'), 'earlyStall')).toHaveLength(0);
+
+    // Making the bridge ends it too, but only once the normal sets are made.
+    const bridged = buildLog()
+      .lift('2026-11-04')
+      .lift('2026-11-06')
+      .lift('2026-11-09')
+      .lift('2026-11-11', { press: madeAt(100, 'rir3to4') })
+      .lift('2026-11-13')
+      .lift('2026-11-16', { press: missedAt(105) })
+      .lift('2026-11-18')
+      .lift('2026-11-20', { press: missed() }) // BRIDGE_SHORT: the note shows
+      .lift('2026-11-23')
+      .lift('2026-11-25', { press: made() }); // 5×3 made: BRIDGE_NORMAL, still on the bridge
+    expect(bridged.state('press')?.stage).toBe('BRIDGE_NORMAL');
+    expect(kinds(bridged, 'earlyStall').map((s) => s.lift)).toEqual(['press']);
+    bridged.lift('2026-11-27').lift('2026-11-30', { press: made('rir1to2') }); // 3×5 made
+    expect(bridged.state('press')?.stage).toBe('NORMAL');
+    expect(kinds(bridged, 'earlyStall')).toHaveLength(0);
   });
 });
 

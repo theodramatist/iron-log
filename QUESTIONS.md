@@ -4,19 +4,11 @@ Open questions from building the app (CLAUDE.md, ground rule 1). Each answer is 
 
 ## Open
 
-To answer, reply in chat ("Q19: keep it").
-
-### Q19. When the early-stall note goes away (§5, §13)
-
-**Problem.** RULES says when the early-stall note shows (a lift enters `BRIDGE_SHORT` in program weeks 1–8) but not when it stops. Today shows at most two banners, and the note ranks above the maintenance-break banner and the export reminder. Left up, a press note and a deadlift note could hide both of those for weeks.
-
-**Reading.** The note lasts as long as that lift's stall. It clears when the lift makes the bridge, resets, or graduates, when the food lever turns on (its advice is then in force), or when he dismisses it.
-
-**Constant.** `EARLY_STALL_NOTE_ENDS_WITH_STALL = true`. With `false`, the note stays until he dismisses it.
+None.
 
 ## Answered
 
-The owner accepted every recommendation on 2026-11-03: keep 16 readings as they were, and change Q8 and Q13.
+The owner accepted every recommendation on 2026-11-03: keep 16 readings as they were, and change Q8 and Q13. Q19 came up while building the screens and was answered the same day.
 
 | # | Question | RULES.md | Decision |
 | --- | --- | --- | --- |
@@ -38,3 +30,4 @@ The owner accepted every recommendation on 2026-11-03: keep 16 readings as they 
 | Q16 | Whether a fresh novice run clears "not crisp" | §11 | Keep: yes, cleans and rows go back to 5-lb jumps. |
 | Q17 | The restart weight for a graduated lift | §17 | Keep: suggest 90% of the last completed weight, editable. |
 | Q18 | Time-projection estimates | §14 | Keep, and tune them against logged session times once there are a few weeks of them. |
+| Q19 | When the early-stall note goes away | §5, §13 | Keep: it lasts as long as that lift's stall, clearing when the lift makes the bridge, resets, or graduates, when the food lever turns on, or when he dismisses it. Left up, two notes could fill both banner slots and hide the export reminder. |

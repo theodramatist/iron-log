@@ -317,7 +317,7 @@ The app doesn't track food. It shows these prompts only:
 
 - Lifting day: "Shake after lifting."
 - Conditioning day, after the session is logged: in conditioning phase 1 or 2, "Add a second Shake today." In phase 3 or 4, "Add a second Breakfast today." Keyed to the phase, so the food changes when the sessions get longer. No session logged, no prompt.
-- Early-stall note (a lift enters `BRIDGE_SHORT` in program weeks 1–8): "If recovery feels poor, your eating plan's lever comes before any reset: a second Shake on lifting days."
+- Early-stall note (a lift enters `BRIDGE_SHORT` in program weeks 1–8): "If recovery feels poor, your eating plan's lever comes before any reset: a second Shake on lifting days." It lasts as long as that lift's stall: it clears when the lift makes the bridge, resets, or graduates, when the food lever turns on, or when he dismisses it. **[app rule]**
 - Food lever on (section 5): every lifting day's card adds "Second Shake today (your eating plan's lever)." Conditioning days already have their extra slot.
 - The maintenance-break banner (dates in `program.json`), its floor-week addition (section 10), and the hold rule (section 5).
 - Never: a prompt that ties exercise to food eaten, or an extra session for food.

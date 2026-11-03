@@ -1,5 +1,5 @@
 // Readings of RULES.md where it was ambiguous (CLAUDE.md, ground rule 1).
-// The owner decided Q1 through Q18 on 2026-11-03. Each decision is an
+// The owner decided Q1 through Q19 on 2026-11-03. Each decision is an
 // [app rule] in the RULES.md section named, and its number matches QUESTIONS.md.
 // New questions get a constant here and an entry there.
 
@@ -56,7 +56,7 @@ export const READINGS = {
   /** Q17 (sections 3 and 17): the restart weight the Lifts screen suggests for a graduated lift, as a fraction of its last weight. */
   RESTART_SUGGESTED_FRACTION: 0.9,
 
-  /** Q19 (sections 5 and 13), open: the early-stall note clears once that lift's stall ends or the food lever turns on. */
+  /** Q19 (sections 5 and 13): the early-stall note lasts as long as its stall, and clears once the food lever turns on. */
   EARLY_STALL_NOTE_ENDS_WITH_STALL: true,
 
   /** Q18 (section 14): time projection estimates, in seconds. */
