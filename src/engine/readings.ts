@@ -1,5 +1,5 @@
 // Readings of RULES.md where it was ambiguous (CLAUDE.md, ground rule 1).
-// The owner decided Q1 through Q19 on 2026-11-03. Each decision is an
+// The owner decided Q1 through Q21 on 2026-11-03. Each decision is an
 // [app rule] in the RULES.md section named, and its number matches QUESTIONS.md.
 // New questions get a constant here and an entry there.
 
@@ -58,6 +58,12 @@ export const READINGS = {
 
   /** Q19 (sections 5 and 13): the early-stall note lasts as long as its stall, and clears once the food lever turns on. */
   EARLY_STALL_NOTE_ENDS_WITH_STALL: true,
+
+  /** Q20 (sections 9 and 10): a bench, row, or clean that still needs calibration sits out a light or floor week. */
+  CALIBRATION_WAITS_FOR_NORMAL_WEEK: true,
+
+  /** Q21 (sections 10 and 12): a pain return inside a light or floor week takes that week's sets at the return weight. */
+  PAIN_RETURN_TAKES_WEEK_SETS: true,
 
   /** Q18 (section 14): time projection estimates, in seconds. */
   BIKE_WARMUP_SEC: 300,

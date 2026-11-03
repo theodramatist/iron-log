@@ -1,6 +1,6 @@
 // RULES.md section 0: definitions, dates, and replay.
 import { describe, expect, it } from 'vitest';
-import { daysBetween, programWeek, weekdayIndex, weekStart } from '../src/engine';
+import { daysBetween, planFor, programWeek, weekSummary, weekdayIndex, weekStart } from '../src/engine';
 import { START, buildLog, made } from './helpers/log';
 
 describe('§0 Definitions', () => {
@@ -49,5 +49,13 @@ describe('§0 Definitions', () => {
     const log = buildLog().lift('2027-03-12', { squat: made('rir1to2', 200) });
     expect(log.plan('2027-03-15').daysAway).toBe(3);
     expect(log.plan('2027-03-15').programWeek).toBe(20);
+  });
+
+  it('a week summary agrees with each day\'s own plan', () => {
+    const log = buildLog().lift('2026-11-04', { squat: made('rir3to4') }).cond('2026-11-05').declare('2026-11-05', 'light');
+    const input = log.input('2026-11-05');
+    const week = weekSummary(input, '2026-11-02');
+    for (const d of week.days) if (!d.projected) expect(d).toEqual(planFor(input, d.date));
+    expect(week.days.filter((d) => d.projected).map((d) => d.date)).toEqual([]);
   });
 });

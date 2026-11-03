@@ -14,6 +14,7 @@ import type {
   MissedBand,
   PausedLiftPlan,
   SessionPlan,
+  WaitingLiftPlan,
 } from './planTypes';
 import { formatLb, inventoryFrom, platesPerSide, progressionWeight, type Inventory } from './plates';
 import {
@@ -50,6 +51,11 @@ export interface PrescribeOptions {
   painAnswers?: Partial<Record<BarbellLiftId, 'gone' | 'stillThere'>>;
   equipmentDown?: EquipmentDown[];
 }
+
+const CALIBRATED = new Set<BarbellLiftId>(['bench', 'row', 'powerClean']);
+
+/** Q20: what a lift that still needs calibration shows in a light or floor week. */
+export const WAITS_FOR_NORMAL_WEEK = 'Calibrates at its first session of a normal week.';
 
 export function nextWorkout(st: EngineState): Workout {
   const last = lastSession(st);
@@ -208,8 +214,14 @@ function buildLiftPlan(
   if (returning) {
     kind = 'painReturn';
     weight = pctWeight(ctx, base, program.safety.painReturnFraction, lift);
+    if (weekType !== 'normal' && READINGS.PAIN_RETURN_TAKES_WEEK_SETS) {
+      // Q21: inside a light or floor week, the return takes that week's sets.
+      const r = reducedScheme(program, lift, weekType === 'floor' ? 'floorWeek' : 'lightWeek');
+      sets = r.sets;
+      reps = r.reps;
+    }
     notes.push(`Return session at ${Math.round(program.safety.painReturnFraction * 100)}%.`);
-  } else if (s.needsCalibration && (lift === 'bench' || lift === 'row' || lift === 'powerClean')) {
+  } else if (s.needsCalibration && CALIBRATED.has(lift)) {
     const c = program.calibration[lift as CalibratedLift];
     kind = 'calibration';
     weight = settings.barLb;
@@ -235,11 +247,12 @@ function buildLiftPlan(
     sets = r.sets;
     reps = r.reps;
   } else if (s.stage === 'GRADUATED') {
-    const lc = s.lastCompleted ?? { weight: base, sets: n.sets, reps: n.reps };
+    // The prefill: the last completed weight and sets, or a layoff's drop from them.
+    const prefill = s.next ?? s.lastCompleted ?? { weight: base, sets: n.sets, reps: n.reps };
     kind = 'graduated';
-    weight = lc.weight;
-    sets = lc.sets;
-    reps = lc.reps;
+    weight = prefill.weight;
+    sets = prefill.sets;
+    reps = prefill.reps;
   } else if (lift === 'squat' && isLightSquatDay(st, s, date)) {
     const ld = program.lightSquatDay;
     kind = 'lightDay';
@@ -287,6 +300,18 @@ function buildLiftPlan(
   };
 }
 
+/**
+ * program.json words the calibration for dips on day one. After a long layoff
+ * both movements start at a set number (section 11), and chins have no
+ * upper-arms-parallel depth cue.
+ */
+export function calibrationText(dipText: string, lift: AssistLiftId, start: number, recalibrating: boolean): string {
+  if (lift === 'dip' && !recalibrating) return dipText;
+  const steps = dipText.slice(dipText.indexOf('. ') + 2);
+  const body = lift === 'chin' ? steps.replace(/, stopping at upper arms parallel\.$/, '.') : steps;
+  return `Start at ${formatLb(start)} lb of help. ${body}`;
+}
+
 function buildAssistMovement(
   st: EngineState,
   assist: Record<AssistLiftId, AssistState>,
@@ -306,7 +331,7 @@ function buildAssistMovement(
     const chin = assist.chin;
     const chinNow = chin.mode === 'LOAD' || chin.mode === 'REPS_BUILD' ? chin.assistance : 0;
     const start = a.calibrationStart ?? (lift === 'dip' ? chinNow : a.assistance);
-    calibration = { start, step: 10, closeStep: 5, instructions: ap.calibration.dip };
+    calibration = { start, step: 10, closeStep: 5, instructions: calibrationText(ap.calibration.dip, lift, start, a.calibrationStart !== null) };
     view = { ...a, assistance: start, mode: 'LOAD', addedLoad: 0 };
   } else if (kind === 'lightWeek') {
     view = addAssistance(a, ap.lightWeekExtraLb);
@@ -371,8 +396,13 @@ export function buildSessionPlan(st: EngineState, date: LocalDate, opts: Prescri
   const workout = nextWorkout(st);
   const planned: LiftPlan[] = [];
   const paused: PausedLiftPlan[] = [];
+  const waiting: WaitingLiftPlan[] = [];
   for (const { slot, lift } of slotLifts(st, lifts, date, workout, weekType)) {
     const s = lifts[lift];
+    if (READINGS.CALIBRATION_WAITS_FOR_NORMAL_WEEK && weekType !== 'normal' && s.needsCalibration && CALIBRATED.has(lift)) {
+      waiting.push({ slot, lift, label: liftLabel(program, lift), message: WAITS_FOR_NORMAL_WEEK });
+      continue;
+    }
     const answer = opts.painAnswers?.[lift];
     if (s.pain === 'paused' && answer !== 'gone') {
       paused.push({
@@ -435,6 +465,7 @@ export function buildSessionPlan(st: EngineState, date: LocalDate, opts: Prescri
     missedBand: missedBand(daysAway),
     lifts: planned,
     paused,
+    waiting,
     assist: assistBlock,
     beforeLifting: program.workouts.beforeLifting,
     afterLiftingSpin: null,

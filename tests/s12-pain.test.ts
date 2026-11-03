@@ -84,4 +84,20 @@ describe('§12 Pain and safety', () => {
     expect(log.day('2026-11-03').notes).toContain(note);
     expect(log.day('2026-11-16').notes).not.toContain(note);
   });
+
+  it('Q21 A pain return in a light or floor week takes the week\'s sets', () => {
+    const gone = { painAnswers: { squat: 'gone' as const } };
+    const light = buildLog().lift('2026-11-04', { squat: painStop(1) }).declare('2026-11-06', 'light');
+    expect(light.liftPlan('2026-11-06', 'squat', gone)).toMatchObject({ kind: 'painReturn', weight: 85, sets: 2, reps: 5 });
+    light.lift('2026-11-06', { squat: made() }, gone);
+    expect(light.state('squat')?.pain).toBe('none');
+
+    const floor = buildLog().lift('2026-11-04', { squat: painStop(1) }).declare('2026-11-06', 'floor');
+    expect(floor.liftPlan('2026-11-06', 'squat', gone)).toMatchObject({ kind: 'painReturn', weight: 85, sets: 2, reps: 5 });
+
+    // In a normal week it's the normal sets, and the day says it's the return.
+    const normal = buildLog().lift('2026-11-04', { squat: painStop(1) }).painCleared('2026-11-05', 'squat', 'clinician');
+    expect(normal.liftPlan('2026-11-06', 'squat')).toMatchObject({ kind: 'painReturn', weight: 85, sets: 3, reps: 5 });
+    expect(normal.day('2026-11-06').summary).toContain('Squat 3×5 · 85 · return at 90%');
+  });
 });

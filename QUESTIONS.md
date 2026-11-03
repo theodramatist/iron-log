@@ -4,27 +4,11 @@ Open questions from building the app (CLAUDE.md, ground rule 1). Each answer is 
 
 ## Open
 
-The M3 audit (`docs/AUDIT-M3.md`) raised these two. To answer, reply in chat ("Q20: keep it"). Each reading gets its constant and tests when it's built, and until then the engine works as described under **Problem**.
-
-### Q20. A first calibration that falls in a light or floor week (§2, §9, §10)
-
-**Problem.** Bench, rows, cleans, and dips calibrate the first time they appear, and a calibration day counts as the lift's first heavy session (§9, Q6). But nothing progresses in a light or floor week (§10). When a lift's first appearance falls in one of those weeks, the two rules collide. Today the calibration runs: the row's first Workout B in week 3, inside a light week, ramps to a heavy set and sets the row's starting weight and next jump (audit finding H2).
-
-**Reading.** In a light or floor week, a lift that still needs calibration sits out, with the note "Calibrates at its first session of a normal week," and calibrates then. Chin and dip calibrations stay as they are: they look for a setting with reps to spare, and a light week doesn't progress them.
-
-**Constant.** `CALIBRATION_WAITS_FOR_NORMAL_WEEK = true`.
-
-### Q21. A pain return that falls in a light or floor week (§10, §12)
-
-**Problem.** A lift back from a pain stop "runs one session of its normal sets" at 90% (§12). In a light week the other lifts run 2×5 at 90%, and in a floor week 2×5 at `lcw`. Today the returning lift runs its normal sets, 3×5 at 90%, in either week, so it does more than anything else that week (audit finding M1).
-
-**Reading.** The return session takes the week's set count at the return weight: 2×5 at 90% (1×5 for the deadlift and 3×3 for cleans). It still counts as the return, and the lift resumes its prescription afterward.
-
-**Constant.** `PAIN_RETURN_TAKES_WEEK_SETS = true`.
+None.
 
 ## Answered
 
-The owner accepted every recommendation on 2026-11-03: keep 16 readings as they were, and change Q8 and Q13. Q19 came up while building the screens and was answered the same day.
+The owner accepted every recommendation on 2026-11-03: keep 16 readings as they were, and change Q8 and Q13. Q19 came up while building the screens, and Q20 and Q21 came from the M3 audit (`docs/AUDIT-M3.md`). All three were answered the same day.
 
 | # | Question | RULES.md | Decision |
 | --- | --- | --- | --- |
@@ -47,3 +31,5 @@ The owner accepted every recommendation on 2026-11-03: keep 16 readings as they 
 | Q17 | The restart weight for a graduated lift | §17 | Keep: suggest 90% of the last completed weight, editable. |
 | Q18 | Time-projection estimates | §14 | Keep, and tune them against logged session times once there are a few weeks of them. |
 | Q19 | When the early-stall note goes away | §5, §13 | Keep: it lasts as long as that lift's stall, clearing when the lift makes the bridge, resets, or graduates, when the food lever turns on, or when he dismisses it. Left up, two notes could fill both banner slots and hide the export reminder. |
+| Q20 | A first calibration that falls in a light or floor week | §9, §10 | Keep: the bench, row, or clean sits out that week with a note and calibrates at its first session of a normal week. Chin and dip calibrations go ahead. |
+| Q21 | A pain return that falls in a light or floor week | §10, §12 | Keep: the return takes the week's sets at 90% (2×5, 1×5 for the deadlift, 3×3 for cleans) and still counts as the return. |

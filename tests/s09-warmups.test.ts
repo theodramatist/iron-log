@@ -113,4 +113,26 @@ describe('§9 Warm-ups and calibration', () => {
     expect(log.state('bench')).toMatchObject({ lcw: 115, next: { weight: 120 } });
     expect(log.assist('dip')).toMatchObject({ assistance: 115, lastMadeAssistance: 120 });
   });
+
+  it('Q20 A first calibration waits for a normal week', () => {
+    const log = buildLog().lift('2026-11-04', {
+      bench: calibrate([
+        [45, 'fast'],
+        [65, 'fast'],
+        [85, 'slowing'],
+        [95, 'slowed'],
+      ]),
+    });
+    for (const d of ['2026-11-06', '2026-11-09', '2026-11-11', '2026-11-13']) log.lift(d);
+    log.declare('2026-11-16', 'light').lift('2026-11-16');
+    // Week 3's first B would calibrate the row, but it's a light week.
+    const light = log.plan('2026-11-18');
+    expect(light.weekType).toBe('light');
+    expect(light.lifts.map((l) => l.lift)).toEqual(['squat', 'bench']);
+    expect(light.waiting).toEqual([{ slot: 3, lift: 'row', label: 'Barbell row', message: 'Calibrates at its first session of a normal week.' }]);
+    expect(log.day('2026-11-18').summary).toContain('Barbell row: calibrates in a normal week');
+    log.lift('2026-11-18').lift('2026-11-20');
+    expect(log.state('row')?.needsCalibration).toBe(true);
+    expect(log.liftPlan('2026-11-23', 'row')).toMatchObject({ kind: 'calibration' });
+  });
 });

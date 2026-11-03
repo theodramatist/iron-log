@@ -112,5 +112,7 @@ describe('§6 Light squat day and once-a-week deadlift', () => {
     expect(log.state('squat')).toMatchObject({ lcw: 100, next: { weight: 102.5 }, lightDayOn: false });
     log.lift('2026-11-09', { squat: made('rir1to2') }); // a progression step to 102.5: two
     expect(log.state('squat')).toMatchObject({ lcw: 102.5, smallJumpReachedOn: '2026-11-09', lightDayOn: true });
+    // Wednesday is the week's second session, so the day names the light squat.
+    expect(log.day('2026-11-11').summary[0]).toMatch(/^Squat 2×5 · [\d.]+ · light day$/);
   });
 });

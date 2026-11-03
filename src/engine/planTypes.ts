@@ -62,6 +62,14 @@ export interface PausedLiftPlan {
   question: string;
 }
 
+/** A lift that still needs calibration, sitting out a light or floor week (Q20). */
+export interface WaitingLiftPlan {
+  slot: number;
+  lift: BarbellLiftId;
+  label: string;
+  message: string;
+}
+
 export interface AssistMovementPlan {
   lift: AssistLiftId;
   label: string;
@@ -114,6 +122,8 @@ export interface SessionPlan {
   missedBand: MissedBand | null;
   lifts: LiftPlan[];
   paused: PausedLiftPlan[];
+  /** Lifts waiting for a normal week to calibrate (Q20). */
+  waiting: WaitingLiftPlan[];
   assist: AssistBlockPlan | null;
   beforeLifting: string;
   afterLiftingSpin: { minutes: number; optional: boolean } | null;

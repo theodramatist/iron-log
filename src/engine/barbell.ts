@@ -199,6 +199,9 @@ export function applyHeavyResult(
       break;
     case 'REPEAT':
       if (outcome === 'made') jump = sectionFour(s, W, effort, true, ctx);
+      // A power clean's food-lever repeat resets on a miss (section 5). The stall's
+      // graduation check can't apply here: this weight stalled without graduating,
+      // so it's above lastResetFrom.
       else if (s.foodLeverRound && s.lift === 'powerClean') reset(s, W, ctx.date, ctx);
       else stall(s, W, ctx);
       break;
@@ -311,9 +314,11 @@ export function applyLayoffBand(
     s.lastCompleted = null;
   }
   if (graduated && days <= 60 && READINGS.GRADUATED_SURVIVES_SHORT_LAYOFF) {
-    // Section 17: a graduated lift stays graduated; only its prefill drops.
-    s.lastCompleted = s.lastCompleted ? { ...s.lastCompleted, weight: s.lcw } : null;
-    s.next = normalAt(program, s.lift, s.lcw);
+    // Section 17: a graduated lift stays graduated; only its prefill (next) drops.
+    // lastCompleted keeps the weight he last completed, for a restart.
+    const sets = s.next?.sets ?? s.lastCompleted?.sets;
+    const reps = s.next?.reps ?? s.lastCompleted?.reps;
+    s.next = { ...normalAt(program, s.lift, s.lcw), ...(sets ? { sets } : {}), ...(reps ? { reps } : {}) };
     return;
   }
   s.stage = 'NORMAL';

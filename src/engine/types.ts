@@ -337,7 +337,10 @@ export interface LiftState {
   smallJumpCount: number;
   /** When that count reached two, switching on the light squat day or once-a-week deadlift. */
   smallJumpReachedOn: LocalDate | null;
-  /** For GRADUATED lifts: the prefill. */
+  /**
+   * The last weight and sets completed, for a graduated lift's restart
+   * suggestion (Q17). A GRADUATED lift's prefill is `next`, which a layoff drops.
+   */
   lastCompleted: { weight: number; sets: number; reps: number } | null;
   /** lcw before a 22-to-60-day layoff drop, for the heavy-warm-up answer. */
   preLayoffLcw: number | null;

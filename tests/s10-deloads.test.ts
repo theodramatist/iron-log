@@ -217,4 +217,28 @@ describe('§10 Deloads, illness, and floor weeks', () => {
     }
     expect(log.day('2026-12-28', '2026-12-20').banners.map((b) => b.kind)).toContain('maintenanceBreak');
   });
+
+  it('a week plans no more lifting days than its cap', () => {
+    // Christmas week: two sessions, on the first two lift days.
+    const log = buildLog();
+    const lifting = (today: string) =>
+      log
+        .week('2026-12-21', today)
+        .days.filter((d) => d.kind === 'lifting')
+        .map((d) => d.date);
+    expect(lifting('2026-12-20')).toEqual(['2026-12-21', '2026-12-23']);
+    expect(log.week('2026-12-21', '2026-12-20').days[4]).toMatchObject({ date: '2026-12-25', kind: 'off', projected: true });
+    log.lift('2026-12-21');
+    expect(lifting('2026-12-22')).toEqual(['2026-12-21', '2026-12-23']);
+
+    // A normal week with Tuesday swapped to lifting: three, so Friday is off.
+    const swapped = buildLog().lift('2026-11-03');
+    const days = swapped.week('2026-11-02', '2026-11-04').days;
+    expect(days.filter((d) => d.kind === 'lifting').map((d) => [d.date, d.status])).toEqual([
+      ['2026-11-02', 'done'],
+      ['2026-11-03', 'done'],
+      ['2026-11-04', 'planned'],
+    ]);
+    expect(days[4]).toMatchObject({ date: '2026-11-06', kind: 'off', projected: true });
+  });
 });

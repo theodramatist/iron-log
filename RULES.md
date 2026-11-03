@@ -246,6 +246,7 @@ warmups(lift, W):
 - **Power cleans (first appearance).** The same, in sets of 3, ending with "Bar speed dropped." That set is the first of 5 work sets.
 - **Dips (first Workout B).** Before the chin-and-dip block, start with generous assistance (default: the current chin assistance) and do sets of up to 5, taking off 10 lb a set (5 lb once it feels close), until 5 solid reps leave 2 or 3 to spare, stopping at upper arms parallel. That setting is the dip assistance and its `lastMadeAssistance`, and all 3 rounds use it.
 - **A calibration day counts [app rule].** The work sets that follow a calibration are the lift's first heavy session, rated and progressed by section 4. The dip rounds after dip calibration follow section 7 the same way.
+- **Not in a light or floor week [app rule].** A bench, row, or power clean that still needs calibration sits out a light or floor week, with the note "Calibrates at its first session of a normal week," and calibrates then. Chin and dip calibrations go ahead: they look for a setting with reps to spare, and the week doesn't progress them.
 
 ## 10. Deloads, illness, and floor weeks
 
@@ -307,6 +308,7 @@ At the start of each lifting session, `daysAway` = calendar days since the last 
 - **At the next session with that lift,** the app asks, "Is the <lift> pain gone?"
   - Yes: `pain = returning`. The lift runs one session of its normal sets at `percentWeight(lcw, 0.90)`, which isn't heavy, and then resumes the prescription it had. If the pain comes back in that session, it's a new pain stop.
   - No, or still there in the warm-ups: the lift stays paused and shows "See a doctor or physical therapist before loading it again." It asks again at each later session, and a "Cleared by a clinician" button starts the return as above.
+  - In a light or floor week, the return session takes that week's sets at the return weight: 2×5 at `percentWeight(lcw, 0.90)`, 1×5 for the deadlift, and 3×3 for power cleans. It still counts as the return. **[app rule]**
 - **Stop session.** A button on every session screen for chest pain or pressure, fainting, unusual breathlessness, dizziness, or a racing or irregular heartbeat. It ends the session, nothing counts, and it shows: "Stop now. Chest pain that doesn't ease within a few minutes of stopping is a 911 call. Get checked before training again."
 - **Soreness note** in program weeks 1 and 2: "Heavy soreness is normal after a year off. Joint pain, sharp pain, or pain that changes how you move is not."
 - **Screening note** at setup (acknowledged once), again before the first interval session (section 8), and always in Settings.

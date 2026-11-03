@@ -43,18 +43,41 @@ export function sortEvents(events: AnyEvent[]): AnyEvent[] {
   });
 }
 
-/** State after every event dated on or before `through` (all events when omitted). */
-export function replay(input: EngineInput, through?: LocalDate): EngineState {
+function startState(input: EngineInput): { st: EngineState; events: AnyEvent[] } {
   const st = initialState(input.program, defaultSettings(input.program));
   const events = sortEvents(input.events);
   for (const ev of events) if (ev.type === 'setup') applySetup(st, ev);
   const overrides = Object.fromEntries(Object.entries(input.settings).filter(([, v]) => v !== undefined));
   st.settings = { ...st.settings, ...overrides } as Settings;
+  return { st, events: events.filter((ev) => ev.type !== 'setup') };
+}
+
+function apply(st: EngineState, ev: AnyEvent): void {
+  applyEvent(st, ev);
+  pruneSuggestions(st);
+}
+
+/** State after every event dated on or before `through` (all events when omitted). */
+export function replay(input: EngineInput, through?: LocalDate): EngineState {
+  const { st, events } = startState(input);
   for (const ev of events) {
-    if (ev.type === 'setup') continue;
     if (through !== undefined && ev.date > through) break;
-    applyEvent(st, ev);
-    pruneSuggestions(st);
+    apply(st, ev);
+  }
+  return st;
+}
+
+/**
+ * One pass for several dates: `visit` sees the state after each date's events,
+ * as `replay(input, date)` would, in ascending order. Returns the final state.
+ * `visit` must not keep references to the state, which keeps changing.
+ */
+export function replayEach(input: EngineInput, dates: readonly LocalDate[], visit: (st: EngineState, date: LocalDate) => void): EngineState {
+  const { st, events } = startState(input);
+  let i = 0;
+  for (const date of dates) {
+    while (i < events.length && events[i]!.date <= date) apply(st, events[i++]!);
+    visit(st, date);
   }
   return st;
 }
@@ -307,6 +330,8 @@ function applyOverride(st: EngineState, ev: OverrideEvent): void {
         foodLeverRound: false,
         pendingFoodLever: null,
         lastCompleted: null,
+        preLayoffLcw: null,
+        overrideNext: null,
         smallJumpCount: 0,
         smallJumpReachedOn: null,
       } satisfies Partial<LiftState>);
@@ -411,6 +436,11 @@ function processLiftLog(st: EngineState, ev: LiftingSessionEvent, log: LiftLog):
     s.next = normalAt(st.program, s.lift, s.lcw);
     s.preLayoffLcw = null;
   }
+  // The question comes once, at the lift's first heavy session back, whatever the
+  // answer. A lift that wasn't reached is asked at its next one.
+  if (kind === 'heavy' && s.preLayoffLcw !== null && (log.layoffWarmupHeavy !== undefined || log.sets.some((x) => !x.skipped))) {
+    s.preLayoffLcw = null;
+  }
 
   const outcome = evaluate(log);
 
@@ -418,7 +448,7 @@ function processLiftLog(st: EngineState, ev: LiftingSessionEvent, log: LiftLog):
     if (outcome === 'made') {
       const W = workWeight(log);
       s.lastCompleted = { weight: W, sets: log.prescription.sets, reps: log.prescription.reps };
-      s.next = normalAt(st.program, s.lift, W);
+      s.next = { weight: W, sets: log.prescription.sets, reps: log.prescription.reps, scheme: 'normal' };
       s.lastHeavyDate = date;
       s.lastHeavyWeight = W;
     }
@@ -481,6 +511,8 @@ function processConditioningSession(st: EngineState, ev: ConditioningSessionEven
   if (counted) {
     st.cond = condLayoff(st, st.cond, ev.date).cond;
     st.cond.lastCountedDate = ev.date;
+    const ws = weekStart(ev.date);
+    st.condCountedByWeek.set(ws, (st.condCountedByWeek.get(ws) ?? 0) + 1);
   }
   st.condSessions.push({
     event: ev,

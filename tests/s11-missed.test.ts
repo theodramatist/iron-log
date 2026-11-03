@@ -1,7 +1,7 @@
 // RULES.md section 11: missed training.
 import { describe, expect, it } from 'vitest';
 import type { Settings, SessionPlan } from '../src/engine';
-import { buildLog, cd, made, madeAt, missed, missedAt, plusDays, type Log } from './helpers/log';
+import { PROGRAM, buildLog, cd, made, madeAt, missed, missedAt, plusDays, type Log } from './helpers/log';
 
 const w = (p: SessionPlan) => Object.fromEntries(p.lifts.map((l) => [l.lift, l.weight]));
 
@@ -191,6 +191,9 @@ describe('§11 Missed training', () => {
     log.lift('2027-03-01'); // 10 days away
     expect(log.state('press')?.stage).toBe('GRADUATED');
     expect(log.liftPlan('2027-03-03', 'press')).toMatchObject({ kind: 'graduated', weight: 82.5, sets: 3, reps: 5 });
+    expect(log.day('2027-03-03').summary).toContain('Press 3×5 · 82.5 · graduated');
+    // Only the prefill drops: the restart suggestion still works from 92.5 (Q17).
+    expect(log.state('press')?.lastCompleted).toEqual({ weight: 92.5, sets: 3, reps: 5 });
 
     // More than 60 days starts a fresh run, and the graduation note goes with it.
     const fresh = graduatedPress().lift('2027-04-26');
@@ -207,5 +210,26 @@ describe('§11 Missed training', () => {
     expect(log.state('row')).toMatchObject({ hasBeenNotCrisp: false, lcw: 80 });
     log.lift('2027-02-03', { row: made('crisp') });
     expect(log.state('row')).toMatchObject({ lcw: 80, next: { weight: 85 } });
+  });
+
+  it('asks "Did that warm-up feel heavy?" once per lift after a layoff', () => {
+    // 35 days after Monday, November 2: the 22-to-60-day band.
+    expect(buildLog().liftPlan('2026-12-07', 'squat')).toMatchObject({ weight: 85, layoffHeavyWeight: 75 });
+    const log = buildLog().lift('2026-12-07', { squat: made('rir3to4') }); // asked, and the answer was no
+    expect(log.liftPlan('2026-12-09', 'squat').layoffHeavyWeight).toBeNull();
+    // The press wasn't in that session, so its own first session back asks.
+    expect(log.liftPlan('2026-12-09', 'press').layoffHeavyWeight).toBe(50);
+    log.lift('2026-12-09', { squat: made('rir3to4'), press: made('rir3to4') }).lift('2026-12-11');
+    expect(log.liftPlan('2026-12-14', 'press').layoffHeavyWeight).toBeNull();
+  });
+
+  it('words a recalibration for each movement', () => {
+    const plan = buildLog().plan('2027-01-11'); // more than 60 days away; chins were at 155
+    expect(plan.assist?.chin?.calibration?.instructions).toBe(
+      'Start at 185 lb of help. Sets of up to 5, taking off 10 lb a set (5 lb once it feels close), until 5 solid reps leave 2 or 3 to spare.',
+    );
+    expect(plan.assist?.dip?.calibration?.instructions).toMatch(/^Start at 185 lb of help\. Sets of up to 5.*stopping at upper arms parallel\.$/);
+    // Day one keeps program.json's dip wording.
+    expect(buildLog().plan('2026-11-04').assist?.dip?.calibration?.instructions).toBe(PROGRAM.assistance.calibration.dip);
   });
 });

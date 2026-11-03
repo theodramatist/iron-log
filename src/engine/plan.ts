@@ -8,9 +8,9 @@ import { formatLb } from './plates';
 import { buildSessionPlan } from './prescribe';
 import { BARBELL_LIFTS, liftNoun } from './programAccess';
 import { READINGS } from './readings';
-import { replay } from './replay';
+import { replay, replayEach } from './replay';
 import type { EngineState } from './state';
-import type { EngineInput, LocalDate, SuggestionKind, Workout } from './types';
+import type { EngineInput, LocalDate, PrescriptionKind, SuggestionKind, Workout } from './types';
 
 const SUGGESTION_ORDER: SuggestionKind[] = ['lightWeek', 'foodLever', 'graduation', 'earlyStall'];
 
@@ -130,9 +130,10 @@ export function dayPlan(input: EngineInput, st: EngineState, date: LocalDate): D
       ...session.lifts.map((l) =>
         l.kind === 'calibration'
           ? `${l.label}: find the work weight`
-          : `${l.label} ${l.sets}×${l.reps} · ${formatLb(l.weight)}`,
+          : `${l.label} ${l.sets}×${l.reps} · ${formatLb(l.weight)}${kindNote(program, l.kind)}`,
       ),
       ...session.paused.map((p) => `${p.label}: paused`),
+      ...session.waiting.map((w) => `${w.label}: calibrates in a normal week`),
     ];
     plan.foodLines = food(true);
   } else if (kind === 'conditioning') {
@@ -142,15 +143,34 @@ export function dayPlan(input: EngineInput, st: EngineState, date: LocalDate): D
   return plan;
 }
 
+/** Lines for sessions that aren't the usual heavy work, so the day says so (L6). */
+function kindNote(program: EngineState['program'], kind: PrescriptionKind): string {
+  switch (kind) {
+    case 'lightDay':
+      return ' · light day';
+    case 'painReturn':
+      return ` · return at ${Math.round(program.safety.painReturnFraction * 100)}%`;
+    case 'graduated':
+      return ' · graduated';
+    default:
+      return '';
+  }
+}
+
 export function planForDate(input: EngineInput, date: LocalDate): DayPlan {
   return dayPlan(input, replay(input, date), date);
 }
 
 export function summarizeWeek(input: EngineInput, monday: LocalDate): WeekSummary {
   const program = input.program;
-  const days = Array.from({ length: 7 }, (_, i) => planForDate(input, addDays(monday, i)));
+  const dates = Array.from({ length: 7 }, (_, i) => addDays(monday, i));
+  const days: DayPlan[] = [];
+  // One pass through the log for the whole week, not one replay per day.
+  const st = replayEach(input, dates, (state, date) => days.push(dayPlan(input, state, date)));
+  const liftCap =
+    weekKind(st, monday) === 'floor' ? program.deload.floorWeek.maxLiftingSessions : program.schedule.maxLiftingSessionsPerWeek;
+  projectCaps(days, input.today, liftCap);
   projectAlternation(days, input.today);
-  const st = replay(input, addDays(monday, 6));
   const inWeek = (d: LocalDate) => weekStart(d) === monday;
   const condMinutes = st.condSessions
     .filter((c) => inWeek(c.date) && (c.counted || READINGS.SHORT_SESSIONS_COUNT_TOWARD_WEEKLY_BAR))
@@ -166,6 +186,23 @@ export function summarizeWeek(input: EngineInput, monday: LocalDate): WeekSummar
     conditioningTargetMinutes: program.conditioning.weeklyTargetMinutes,
     calendarNotes: program.calendarNotes.filter((n) => inWeek(n.date)),
   };
+}
+
+/**
+ * Each day's plan counts only the sessions already logged, so later planned
+ * lifting days can run past the week's cap: a floor week allows two, on the
+ * first two lift days (section 10). Planned days beyond the cap show as off.
+ */
+function projectCaps(days: DayPlan[], today: LocalDate, liftCap: number): void {
+  let left = liftCap - days.reduce((n, d) => n + d.loggedLifting.length, 0);
+  for (const d of days) {
+    if (d.kind !== 'lifting' || d.status === 'done' || d.date < today) continue;
+    if (left > 0) {
+      left -= 1;
+      continue;
+    }
+    Object.assign(d, { kind: 'off', status: 'off', workout: null, summary: [], foodLines: [], message: 'Off.', projected: true });
+  }
 }
 
 /**
@@ -189,10 +226,12 @@ function projectAlternation(days: DayPlan[], today: LocalDate): void {
 }
 
 export function findNextLiftingDate(input: EngineInput, from: LocalDate): LocalDate | null {
-  for (let i = 0; i < 21; i++) {
-    const d = addDays(from, i);
-    const p = planForDate(input, d);
-    if (p.kind === 'lifting' && p.status !== 'done') return d;
-  }
-  return null;
+  const dates = Array.from({ length: 21 }, (_, i) => addDays(from, i));
+  let found: LocalDate | null = null;
+  replayEach(input, dates, (st, date) => {
+    if (found !== null) return;
+    const p = dayPlan(input, st, date);
+    if (p.kind === 'lifting' && p.status !== 'done') found = date;
+  });
+  return found;
 }

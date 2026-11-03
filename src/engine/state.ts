@@ -52,6 +52,8 @@ export interface EngineState {
   bodyweights: { date: LocalDate; lb: number }[];
   sessions: SessionRecord[];
   condSessions: CondRecord[];
+  /** Counted conditioning sessions per calendar week, so a week's count never rescans the log. */
+  condCountedByWeek: Map<LocalDate, number>;
   cond: CondState;
   foodLever: { on: boolean; since: LocalDate | null };
   /** Week start to floor or not floor, overriding the preloaded schedule. */
@@ -130,6 +132,7 @@ export function initialState(program: Program, settings: Settings): EngineState 
     bodyweights: [],
     sessions: [],
     condSessions: [],
+    condCountedByWeek: new Map(),
     cond: { week: 1, weekStart: null, lastCountedDate: null },
     foodLever: { on: false, since: null },
     floorOverrides: new Map(),

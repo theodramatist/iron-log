@@ -10,7 +10,7 @@ import type { EquipmentDown, LocalDate } from './types';
 
 /** A calendar week counts when both sessions were completed and it was neither a light nor a floor week. */
 export function weekCounted(st: EngineState, ws: LocalDate): boolean {
-  const done = st.condSessions.filter((c) => c.counted && weekStart(c.date) === ws).length;
+  const done = st.condCountedByWeek.get(ws) ?? 0;
   return done >= st.program.schedule.maxConditioningSessionsPerWeek && weekKind(st, ws) === 'normal';
 }
 
