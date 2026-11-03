@@ -24,12 +24,22 @@ export function calibrationOutcome(
   sets: CalibrationSetLog[],
   lift: CalibratedLift,
   program: Program,
-): { workWeight: number; rampSetIsFirstWorkSet: boolean; workSetsRemaining: number } | null {
+): CalibrationResult | null {
+  return rampResult(sets, program.calibration[lift].repsPerSet, program.lifts[lift].workSets);
+}
+
+export interface CalibrationResult {
+  workWeight: number;
+  rampSetIsFirstWorkSet: boolean;
+  workSetsRemaining: number;
+}
+
+/** The same, from a session plan's own numbers (`CalibrationPlan.repsPerSet` and `workSets`). */
+export function rampResult(sets: readonly CalibrationSetLog[], repsPerSet: number, workSets: number): CalibrationResult | null {
   const i = sets.findIndex((s) => s.verdict === 'slowed');
   if (i < 0) return null;
   const last = sets[i]!;
-  const workSets = program.lifts[lift].workSets;
-  if (last.reps >= program.calibration[lift].repsPerSet) {
+  if (last.reps >= repsPerSet) {
     return { workWeight: last.weight, rampSetIsFirstWorkSet: true, workSetsRemaining: workSets - 1 };
   }
   const prev = sets[i - 1];

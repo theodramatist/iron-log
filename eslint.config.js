@@ -48,7 +48,7 @@ export default defineConfig(
     },
   },
   {
-    files: ['tests/**/*.ts', 'vite.config.ts', 'eslint.config.js'],
+    files: ['tests/**/*.ts', 'e2e/**/*.mjs', 'vite.config.ts', 'eslint.config.js'],
     languageOptions: { globals: globals.node },
   },
 );

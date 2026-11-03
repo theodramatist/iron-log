@@ -15,7 +15,9 @@ An iPhone app that runs the Retraining Protocol for one lifter. It tells you wha
 | `QUESTIONS.md` | Questions from the build and how each was decided |
 | `src/engine/` | The rules engine: pure TypeScript, tested against every scenario |
 | `src/data/` | On-phone storage, backups, and drafts |
+| `src/ui/` | The screens, and the session drafts behind them |
 | `tests/` | One test file per RULES.md section, named by scenario ID |
+| `e2e/smoke.mjs` | A browser walk through the first week, checked against the engine |
 | `docs/AUDIT.md` | The audit of the original Iron Log, which this rework replaced |
 
 ## Working on it
@@ -30,6 +32,12 @@ npm test
 
 ```bash
 npm run dev
+```
+
+In development, add `?today=2026-11-04` to the address to see any day. The smoke test clicks through the first week in a headless browser:
+
+```bash
+npm run smoke
 ```
 
 The milestones in `CLAUDE.md` say what comes next. After each one, read its report and answer anything new in `QUESTIONS.md`.

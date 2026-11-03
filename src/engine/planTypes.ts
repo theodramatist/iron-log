@@ -168,6 +168,8 @@ export interface DayPlan {
   workout: Workout | null;
   /** "Squat 3×5 · 115" lines. */
   summary: string[];
+  /** A later planned lifting day in a week summary: its letter follows alternation, and its weights wait on the sessions before it. */
+  projected: boolean;
   conditioning: ConditioningPlan | null;
   loggedLifting: LiftingSessionEvent[];
   loggedConditioning: ConditioningSessionEvent[];

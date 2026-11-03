@@ -1,6 +1,9 @@
 // RULES.md section 14: time budget and rest timer.
 import { describe, expect, it } from 'vitest';
 import { restDefaultSec, timeGuard, timerRemainingSec, type SessionProgress } from '../src/engine';
+import { createRepository, memoryAdapter } from '../src/data';
+import { clock } from '../src/ui/format';
+import { newLiftingDraft, sessionPlan, startTimer, tapSet, type LiftingDraft } from '../src/ui/session/lifting';
 import { PROGRAM, buildLog, plusDays } from './helpers/log';
 
 const empty: SessionProgress = { bikeDone: false, warmupsDone: {}, workSetsDone: {}, assistSetsDone: 0, spinDone: false };
@@ -24,7 +27,23 @@ describe('§14 Time budget and rest timer', () => {
     expect(plan.assist?.restSec).toBe(75);
   });
 
-  it.todo('T77 Timer accuracy (§14): needs the M3 session screen');
+  it('T77 Timer accuracy', async () => {
+    // A 3:30 rest: the squat's last rating was 1-2 left.
+    const log = buildLog({ setup: { squat: 'rir1to2' } });
+    const input = log.input('2026-11-04');
+    let draft: LiftingDraft = { ...newLiftingDraft('2026-11-04', false), step: 'lifting', startedAt: '2026-11-04T17:00:00.000Z' };
+    const squat = sessionPlan(input, draft).lifts.find((l) => l.lift === 'squat')!;
+    draft = tapSet(draft, squat, 0);
+    draft = startTimer(draft, 'Squat', squat.restSec, '2026-11-04T17:10:00.000Z');
+    expect(clock(timerRemainingSec(draft.timer!, '2026-11-04T17:10:00.000Z'))).toBe('3:30');
+
+    // The app goes to the background for 2 minutes, and iOS may drop the page:
+    // only the saved draft comes back.
+    const repo = createRepository(memoryAdapter(), PROGRAM);
+    await repo.saveDraft('lifting', draft);
+    const back = (await repo.getDraft<LiftingDraft>('lifting'))!.data;
+    expect(clock(timerRemainingSec(back.timer!, '2026-11-04T17:12:00.000Z'))).toBe('1:30');
+  });
 
   it('computes remaining rest from timestamps, not ticks', () => {
     const timer = { startedAt: '2026-11-04T18:00:00.000Z', durationSec: 210, adjustSec: 0 };

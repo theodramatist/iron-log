@@ -10,7 +10,7 @@ import { BARBELL_LIFTS, liftNoun } from './programAccess';
 import { READINGS } from './readings';
 import { replay } from './replay';
 import type { EngineState } from './state';
-import type { EngineInput, LocalDate, SuggestionKind } from './types';
+import type { EngineInput, LocalDate, SuggestionKind, Workout } from './types';
 
 const SUGGESTION_ORDER: SuggestionKind[] = ['lightWeek', 'foodLever', 'graduation', 'earlyStall'];
 
@@ -58,6 +58,7 @@ export function dayPlan(input: EngineInput, st: EngineState, date: LocalDate): D
     loggedLifting,
     loggedConditioning,
     message: null,
+    projected: false,
     notes,
     foodLines: [],
     calendarNote: program.calendarNotes.find((n) => n.date === date)?.label ?? null,
@@ -148,6 +149,7 @@ export function planForDate(input: EngineInput, date: LocalDate): DayPlan {
 export function summarizeWeek(input: EngineInput, monday: LocalDate): WeekSummary {
   const program = input.program;
   const days = Array.from({ length: 7 }, (_, i) => planForDate(input, addDays(monday, i)));
+  projectAlternation(days, input.today);
   const st = replay(input, addDays(monday, 6));
   const inWeek = (d: LocalDate) => weekStart(d) === monday;
   const condMinutes = st.condSessions
@@ -164,6 +166,26 @@ export function summarizeWeek(input: EngineInput, monday: LocalDate): WeekSummar
     conditioningTargetMinutes: program.conditioning.weeklyTargetMinutes,
     calendarNotes: program.calendarNotes.filter((n) => inWeek(n.date)),
   };
+}
+
+/**
+ * Only the next lifting session's prescription is known: the ones after it
+ * depend on how it goes. Later planned lifting days take turns A and B
+ * (section 1) and show no weights yet.
+ */
+function projectAlternation(days: DayPlan[], today: LocalDate): void {
+  let next: Workout | null = null;
+  for (const d of days) {
+    if (d.kind !== 'lifting' || d.status === 'done' || d.date < today || !d.workout) continue;
+    if (next === null) {
+      next = d.workout;
+      continue;
+    }
+    next = next === 'A' ? 'B' : 'A';
+    d.workout = next;
+    d.summary = [];
+    d.projected = true;
+  }
 }
 
 export function findNextLiftingDate(input: EngineInput, from: LocalDate): LocalDate | null {

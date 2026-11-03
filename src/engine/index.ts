@@ -19,18 +19,23 @@ export {
 } from './dates';
 
 export {
+  formatLb,
   inventoryFrom,
   isLoadable,
+  largestLoadableAtOrBelow,
   loadableBetween,
   percentWeight,
   platesPerSide,
   progressionWeight,
+  smallestLoadableAbove,
   type Inventory,
 } from './plates';
 
+export { BARBELL_LIFTS, liftLabel, liftNoun } from './programAccess';
+
 export { READINGS } from './readings';
 export { warmupSets } from './warmups';
-export { calibrationNextWeight, calibrationOutcome, dipCalibrationNext } from './calibration';
+export { calibrationNextWeight, calibrationOutcome, dipCalibrationNext, rampResult, type CalibrationResult } from './calibration';
 export { spreadReps } from './assist';
 export { restDefaultSec, timerRemainingSec, timeGuard, type SessionProgress, type TimerState } from './time';
 export { buildSetupEvents, type SetupAnswers } from './setup';

@@ -20,6 +20,19 @@ describe('§1 Scheduling', () => {
     ]);
   });
 
+  it('a week summary takes turns A and B on later planned days', () => {
+    const lifting = buildLog()
+      .week('2026-11-02', '2026-11-03')
+      .days.filter((d) => d.kind === 'lifting');
+    expect(lifting.map((d) => [d.date, d.workout, d.status, d.projected])).toEqual([
+      ['2026-11-02', 'A', 'done', false],
+      ['2026-11-04', 'B', 'planned', false],
+      ['2026-11-06', 'A', 'planned', true],
+    ]);
+    expect(lifting[1]!.summary.length).toBeGreaterThan(0);
+    expect(lifting[2]!.summary).toEqual([]);
+  });
+
   it('T03 A missed session keeps the alternation', () => {
     const log = buildLog({ setup: { squat: 'rir3to4', press: 'rir1to2', deadlift: 'rir3to4' } }).lift('2026-11-04', {
       squat: made('rir3to4'),
