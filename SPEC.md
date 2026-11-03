@@ -1,4 +1,4 @@
-# Retraining Tracker: product spec
+# Iron Log: product spec
 
 A workout tracker for one lifter, installed on an iPhone home screen from Safari. It runs the Retraining Protocol: it tells him what to lift today, records what he did, and works out the next session, including every stall, reset, deload, layoff, and pain rule. It works offline and keeps all data on the phone.
 
@@ -60,7 +60,7 @@ Every event has `id`, `type`, `date` (local date), `createdAt`, and `updatedAt`.
 | `suggestionDismissed` | suggestion kind |
 | `override` | lift, field, value, reason |
 
-Export format: `{ "app": "retraining-tracker", "schemaVersion": 1, "programVersion": "2026-11-02", "exportedAt": "...", "settings": {...}, "events": [...] }`. Import validates the shape and the schema version, shows a count of events, and replaces all data only after a confirmation.
+Export format: `{ "app": "iron-log", "schemaVersion": 1, "programVersion": "2026-11-02", "exportedAt": "...", "settings": {...}, "events": [...] }`. Import validates the shape and the schema version, shows a count of events, and replaces all data only after a confirmation.
 
 ## 5. Screens
 
@@ -135,17 +135,17 @@ Age bracket, bodyweight, bar and plates, assist-machine steps, `pullChoice`, spl
 ## 6. Interaction and visual design
 
 - One-handed use with chalky hands. Tap targets at least 44 points, primary actions in the bottom half of the screen, and no typing during a normal session.
-- Large numerals for weights and timers. The system font stack (`-apple-system`), with no web fonts to download.
-- Dark theme by default, following the system setting when it is light. High contrast. Respect safe areas (`env(safe-area-inset-*)`).
+- Iron Log's visual language: its dark palette (with the contrast fixes in `docs/AUDIT.md`), large monospace numerals for weights and timers, and the plate bar. System font stacks only (`-apple-system` and `ui-monospace`), with no web fonts to download.
+- Dark theme always. High contrast: text at least 4.5:1 against its background. Respect safe areas (`env(safe-area-inset-*)`).
 - Respect the user's text size where the layout allows, and give every control an accessible label.
 - Plain words: "Bridge," "Reset," "Light week," and "Floor week," as in the protocol. Labels and messages come from `program.json` where it has them.
 - Tone: short and direct. No exclamation points, streaks, badges, or guilt.
 
 ## 7. iPhone requirements and limits
 
-- **Manifest:** `name` "Retraining Tracker", `short_name` "Retraining", `display` "standalone", `orientation` "portrait", `start_url` and `scope` "./", theme and background colors, and 192, 512, and maskable 512 icons. Add a 180×180 `apple-touch-icon`, `apple-mobile-web-app-title`, and `viewport-fit=cover`.
-- **Offline:** the service worker precaches every asset. Use update prompting rather than auto-reload, and never reload during a session. Show "Update ready" on the Today screen, applied on the next launch.
-- **Storage:** IndexedDB. After setup, call `navigator.storage.persist()` and show the result in Settings. WebKit grants it by heuristics, such as whether the site is opened as a home-screen web app, and persistent origins are excluded from eviction ([WebKit, "Updates to Storage Policy," August 10, 2023](https://webkit.org/?p=14403)). Because the grant isn't guaranteed, backups are required (section 8).
+- **Manifest:** `name` "Iron Log", `short_name` "Iron Log", `display` "standalone", `orientation` "portrait", `start_url` and `scope` "./", theme and background colors, and 192, 512, and maskable 512 icons. Add a 180×180 `apple-touch-icon`, `apple-mobile-web-app-title`, and `viewport-fit=cover`.
+- **Offline:** the service worker precaches every asset. Every app on theodramatist.github.io shares one origin, so the worker lives at `/iron-log/sw.js` with scope `/iron-log/`. That is the old Iron Log's URL, so installed phones update to the new worker, which deletes the old `ironlog-v*` caches on activate. Use update prompting rather than auto-reload, and never reload during a session. Show "Update ready" on the Today screen, applied on the next launch.
+- **Storage:** IndexedDB, in a database named `iron-log`. After setup, call `navigator.storage.persist()` and show the result in Settings. WebKit grants it by heuristics, such as whether the site is opened as a home-screen web app, and persistent origins are excluded from eviction ([WebKit, "Updates to Storage Policy," August 10, 2023](https://webkit.org/?p=14403)). Because the grant isn't guaranteed, backups are required (section 8).
 - **Screen awake:** request a Screen Wake Lock while a session screen is open, and request it again when the app returns to the foreground. It works in home-screen web apps from iOS 18.4 ([WebKit bug 254545](https://bugs.webkit.org/show_bug.cgi?id=254545)). Fail quietly where it's missing.
 - **Timers** compute remaining time from stored timestamps, never from counting ticks, because iOS suspends background pages.
 - **Sound:** create the Web Audio context on the Start session tap, since iOS needs a user gesture. Sounds may be muted by the silent switch, so every alert also flashes the screen. Don't use vibration, which Safari on iPhone doesn't support.
@@ -159,7 +159,7 @@ Age bracket, bodyweight, bar and plates, assist-machine steps, `pullChoice`, spl
 
 ## 9. Non-goals
 
-Food logging, accounts, sync, multiple users, Apple Health or Apple Watch, push notifications, exercise videos, and programming for lifts after they graduate (the app just logs them). Android should work but isn't a target.
+Food logging, accounts, sync, multiple users, Apple Health or Apple Watch, push notifications, exercise videos, programming for lifts after they graduate (the app just logs them), and kilograms (the app is pounds only). Android should work but isn't a target.
 
 ## 10. Acceptance criteria
 

@@ -2,7 +2,7 @@
 export function App() {
   return (
     <main>
-      <h1>Retraining Tracker</h1>
+      <h1>Iron Log</h1>
       <p>The engine is being built. Screens arrive in a later milestone.</p>
     </main>
   );

@@ -4,3 +4,8 @@ dev-dist/
 coverage/
 *.local
 .DS_Store
+
+# Backups exported from the app, and the old app's ironlog.v1 data, never belong in the repo.
+iron-log-backup-*.json
+*backup*.json
+ironlog*.json

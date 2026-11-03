@@ -1,6 +1,6 @@
 # Build instructions for Claude Code
 
-You are building **Retraining Tracker**, an offline iPhone home-screen web app for one lifter. It runs the Retraining Protocol and works out every prescription itself, including stalls, resets, deloads, layoffs, and pain stops.
+You are building **Iron Log**, an offline iPhone home-screen web app for one lifter. It runs the Retraining Protocol and works out every prescription itself, including stalls, resets, deloads, layoffs, and pain stops.
 
 ## Read first, in this order
 
@@ -42,3 +42,18 @@ Stop after each milestone and report what's done, the test count, and any open q
 ## Finished means
 
 Every acceptance criterion in SPEC.md section 10 holds, `QUESTIONS.md` has no unanswered entries, and `DEPLOY.md` exists.
+
+## Repo-specific instructions
+
+The owner set these on 2026-11-03. They apply on top of the milestones, and they win where they differ from SPEC.md's defaults.
+
+1. **Name and look.** The app is Iron Log. Use its visual language instead of SPEC.md's default styling: the dark palette (with the contrast fixes in `docs/AUDIT.md`), monospace numerals, and the plate bar.
+2. **Shared origin.** Every app on theodramatist.github.io shares one origin. The IndexedDB database is named `iron-log`, and Workbox caches use the `iron-log` cache ID. Vite's `base` is `/iron-log/`, and the service worker is `/iron-log/sw.js` with scope `/iron-log/`.
+3. **Taking over from the old app.** The old Iron Log's service worker lives at that same URL, so installed phones update to the new one. On activate, delete every cache named `ironlog-v*`, so no phone keeps serving the old app.
+4. **No Barbell Medicine program.** The old app and its embedded template are gone. Only the protocol in PROTOCOL.md ships.
+5. **Icon.** The generated barbell icon from M5.
+6. **Deploy.** The GitHub Actions workflow from M6. There is no `deploy.sh`, and `.gitignore` keeps backup files out of the repo.
+7. **Units.** Pounds only. Kilograms are a SPEC.md non-goal.
+8. **No migration.** Don't import the old app's `ironlog.v1` data. Before the M6 deploy replaces the old app, remind the owner to export a backup from it: open the old Iron Log from the Home Screen, tap Setup, tap "Copy my data (backup)," and paste the result somewhere safe.
+9. **Past-date entries.** Sessions done before launch will be entered as past-date entries (RULES.md §17), so the UI must let him log a session for an earlier date.
+10. **Open questions.** The proposed readings in QUESTIONS.md stand until the owner answers them.

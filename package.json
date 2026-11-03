@@ -1,5 +1,5 @@
 {
-  "name": "retraining-tracker",
+  "name": "iron-log",
   "private": true,
   "version": "0.1.0",
   "description": "Offline iPhone home-screen app that runs the Retraining Protocol.",
