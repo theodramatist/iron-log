@@ -46,7 +46,9 @@ describe('§12 Pain and safety', () => {
     expect(no.state('press')?.pain).toBe('paused');
     no.painCleared('2026-11-17', 'press', 'clinician').lift('2026-11-18');
     expect(no.state('press')?.pain).toBe('returning');
-    expect(no.liftPlan('2026-11-20', 'press')).toMatchObject({ kind: 'painReturn', weight: 90 });
+    // Back on 11-20, nine days after its last heavy session (11-11), so the
+    // section 11 drop comes first (age unset: 100 to 90), then the 90% return: 80.
+    expect(no.liftPlan('2026-11-20', 'press')).toMatchObject({ kind: 'painReturn', weight: 80 });
 
     for (const l of [log, yes, no]) expect(l.suggestions().some((s) => s.kind === 'lightWeek')).toBe(false);
   });

@@ -27,6 +27,7 @@ export {
   type Inventory,
 } from './plates';
 
+export { READINGS } from './readings';
 export { warmupSets } from './warmups';
 export { calibrationNextWeight, calibrationOutcome, dipCalibrationNext } from './calibration';
 export { spreadReps } from './assist';

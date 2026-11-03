@@ -1,13 +1,30 @@
-// Public engine API (SPEC.md section 3). Stub until M1c.
-import type { ConditioningPlan, DayPlan, SessionPlan, WeekSummary } from './planTypes';
-import type { AssistLiftId, AssistState, BarbellLiftId, CheckIns, EngineInput, EquipmentDown, LiftState, LocalDate, Settings, Suggestion } from './types';
+// Public engine API (SPEC.md section 3). Every call is a pure function of its input.
 
-export interface PrescribeOptions {
-  checkIns?: CheckIns;
-  painAnswers?: Partial<Record<BarbellLiftId, 'gone' | 'stillThere'>>;
-  equipmentDown?: EquipmentDown[];
-}
+import { sickOn } from './calendar';
+import { conditioningPlan } from './conditioning';
+import { programWeek } from './dates';
+import { findNextLiftingDate, planForDate, summarizeWeek } from './plan';
+import type { ConditioningPlan, DayPlan, SessionPlan, WeekSummary } from './planTypes';
+import { inventoryFrom, loadableBetween } from './plates';
+import { buildSessionPlan, type PrescribeOptions } from './prescribe';
+import { BARBELL_LIFTS, liftLabel } from './programAccess';
+import { replay } from './replay';
+import type {
+  AssistLiftId,
+  AssistState,
+  BarbellLiftId,
+  EngineInput,
+  EquipmentDown,
+  LiftState,
+  LocalDate,
+  Settings,
+  Suggestion,
+} from './types';
+
+export type { PrescribeOptions };
+
 export type LiftStateView = LiftState & { label: string; lightDayOn: boolean; oncePerWeekOn: boolean };
+
 export interface ProgramStateView {
   foodLeverOn: boolean;
   foodLeverSince: LocalDate | null;
@@ -15,19 +32,86 @@ export interface ProgramStateView {
   screeningAtSetup: boolean;
   screeningBeforeIntervals: boolean;
 }
-const todo = (): never => { throw new Error('not implemented'); };
-export function planFor(_input: EngineInput, _date: LocalDate): DayPlan { return todo(); }
-export function prescribe(_input: EngineInput, _date: LocalDate, _opts?: PrescribeOptions): SessionPlan { return todo(); }
-export function liftStates(_input: EngineInput): Record<BarbellLiftId, LiftStateView> { return todo(); }
-export function assistStates(_input: EngineInput): Record<AssistLiftId, AssistState> { return todo(); }
+
+/** What to do on a date: lifting, conditioning, off, or sick. */
+export function planFor(input: EngineInput, date: LocalDate): DayPlan {
+  return planForDate(input, date);
+}
+
+/** The full lifting plan for a session started on `date`. */
+export function prescribe(input: EngineInput, date: LocalDate, opts: PrescribeOptions = {}): SessionPlan {
+  return buildSessionPlan(replay(input, date), date, opts);
+}
+
+export function liftStates(input: EngineInput): Record<BarbellLiftId, LiftStateView> {
+  const st = replay(input, input.today);
+  const week = programWeek(input.today, input.program.athlete.startDate);
+  return Object.fromEntries(
+    BARBELL_LIFTS.map((lift) => {
+      const s = st.lifts[lift];
+      const on = s.smallJumpReachedOn !== null && s.stage !== 'GRADUATED';
+      return [
+        lift,
+        {
+          ...s,
+          label: liftLabel(input.program, lift),
+          lightDayOn: lift === 'squat' && on,
+          oncePerWeekOn:
+            lift === 'deadlift' &&
+            on &&
+            input.today > (s.smallJumpReachedOn ?? '') &&
+            week >= input.program.deadliftOncePerWeek.earliestProgramWeek,
+        },
+      ];
+    }),
+  ) as Record<BarbellLiftId, LiftStateView>;
+}
+
+export function assistStates(input: EngineInput): Record<AssistLiftId, AssistState> {
+  return replay(input, input.today).assist;
+}
+
 export function conditioningState(
-  _input: EngineInput,
-  _date: LocalDate,
-  _opts?: { shortNight?: boolean; targetMinutes?: number; intervals?: number; equipmentDown?: EquipmentDown[] },
-): ConditioningPlan { return todo(); }
-export function weekSummary(_input: EngineInput, _weekStart: LocalDate): WeekSummary { return todo(); }
-export function triggers(_input: EngineInput): Suggestion[] { return todo(); }
-export function nextLiftingDate(_input: EngineInput, _from: LocalDate): LocalDate | null { return todo(); }
-export function jumpChoices(_input: EngineInput, _lift: BarbellLiftId): number[] { return todo(); }
-export function effectiveSettings(_input: EngineInput, _date?: LocalDate): Settings { return todo(); }
-export function programState(_input: EngineInput): ProgramStateView { return todo(); }
+  input: EngineInput,
+  date: LocalDate,
+  opts: { shortNight?: boolean; targetMinutes?: number; intervals?: number; equipmentDown?: EquipmentDown[] } = {},
+): ConditioningPlan {
+  return conditioningPlan(replay(input, date), date, opts);
+}
+
+export function weekSummary(input: EngineInput, weekStartDate: LocalDate): WeekSummary {
+  return summarizeWeek(input, weekStartDate);
+}
+
+/** Pending suggestions: light week, food lever, graduation, early-stall note. */
+export function triggers(input: EngineInput): Suggestion[] {
+  return [...replay(input, input.today).suggestions];
+}
+
+export function nextLiftingDate(input: EngineInput, from: LocalDate): LocalDate | null {
+  return findNextLiftingDate(input, from);
+}
+
+/** Section 4: a smaller jump than the suggestion, down to a repeat, never a larger one. */
+export function jumpChoices(input: EngineInput, lift: BarbellLiftId): number[] {
+  const st = replay(input, input.today);
+  const s = st.lifts[lift];
+  if (!s.next) return [];
+  if (s.stage !== 'NORMAL' || s.lcw === null) return [s.next.weight];
+  return loadableBetween(s.lcw, s.next.weight, inventoryFrom(st.settings));
+}
+
+export function effectiveSettings(input: EngineInput, date?: LocalDate): Settings {
+  return replay(input, date ?? input.today).settings;
+}
+
+export function programState(input: EngineInput): ProgramStateView {
+  const st = replay(input, input.today);
+  return {
+    foodLeverOn: st.foodLever.on,
+    foodLeverSince: st.foodLever.since,
+    sick: sickOn(st, input.today),
+    screeningAtSetup: st.screening.setup,
+    screeningBeforeIntervals: st.screening.intervals,
+  };
+}
