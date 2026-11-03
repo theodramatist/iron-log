@@ -1,0 +1,44 @@
+# Build instructions for Claude Code
+
+You are building **Retraining Tracker**, an offline iPhone home-screen web app for one lifter. It runs the Retraining Protocol and works out every prescription itself, including stalls, resets, deloads, layoffs, and pain stops.
+
+## Read first, in this order
+
+1. `SPEC.md`: what to build, the stack, screens, iPhone requirements, and acceptance criteria.
+2. `RULES.md`: every decision the engine makes. This is the authority.
+3. `program.json`: the constants RULES.md uses.
+4. `TEST_SCENARIOS.md`: T01 through T94, the tests the engine must pass.
+5. `PROTOCOL.md`: the plan as the lifter reads it. Use it for context and wording, not for rules.
+
+## Ground rules
+
+1. **RULES.md decides.** Don't invent training rules, and don't "improve" the program. If RULES.md is ambiguous, contradicts PROTOCOL.md or program.json, or a scenario can't pass as written, add an entry to `QUESTIONS.md` with the section, the problem, and your proposed reading. Implement the proposed reading behind a named constant, and list open questions in your milestone report.
+2. **Engine first, tests first.** Write the scenario tests before the engine code that satisfies them. Name each test with its scenario ID.
+3. **Keep the engine pure.** Nothing in `src/engine/` may touch the DOM, IndexedDB, `Date.now()`, or `new Date()` without an argument. Today's date is an input.
+4. **Calendar-day arithmetic.** Represent dates as `YYYY-MM-DD` strings and convert to integer day numbers with `Date.UTC(y, m - 1, d) / 86400000` for differences and weekdays. Never add 24-hour blocks to local `Date` objects. Test T82 checks this.
+5. **Copy `program.json` to `src/program/program.json` unchanged.** If a constant has to change, change both copies and log it in `QUESTIONS.md`.
+6. **Dependencies.** Use the stack in SPEC.md section 2, plus `@vite-pwa/assets-generator` for icons and Playwright for an optional smoke test. Ask before adding anything else.
+7. **No data leaves the phone.** No analytics, no remote fonts, no CDNs, and no network calls after the first load.
+8. **Words.** Take labels and messages from `program.json` where it has them. Use the protocol's terms. No exclamation points anywhere in the interface.
+
+## Milestones
+
+Stop after each milestone and report what's done, the test count, and any open questions.
+
+**M0 · Scaffold.** Vite, strict TypeScript, Preact, Vitest, ESLint, and `vite-plugin-pwa`, with scripts for `dev`, `test`, `build`, and `preview`. Done when `npm test` runs.
+
+**M1 · Engine.** In `src/engine/`: dates, plates and rounding, warm-ups, progression, the stall ladder, the light squat day and once-a-week deadlift, chins and dips, conditioning, deloads, missed training, pain, nutrition prompts, time budget, and the API in SPEC.md section 3. Add a terse `buildLog()` test helper so scenarios read like their text. Done when T01 through T94 pass, apart from T77 and T81, which need M2 and M3.
+
+**M2 · Data.** IndexedDB event store with `idb`, session drafts, replay on every change, export and import in the SPEC.md section 4 format, and the persistent-storage request. Done when T81 passes.
+
+**M3 · Core screens.** Setup, Today, Lifting session, and Conditioning session, as SPEC.md section 5 describes. Add a development-only `?today=YYYY-MM-DD` override so a whole week can be clicked through in a desktop browser. Done when a simulated week from 2026-11-02 matches the engine's prescriptions and T77 passes.
+
+**M4 · Remaining screens.** Week, Progress, Lifts, Settings, and backups with the export reminder.
+
+**M5 · iPhone polish.** Manifest, icons generated from one simple SVG (a plain barbell glyph on a dark field, no text), service worker with update prompting, wake lock, audio unlock, screen-flash alerts, and safe areas. Done when SPEC.md acceptance criteria 4, 7, and 8 hold.
+
+**M6 · Deploy.** Deploy to GitHub Pages with a GitHub Actions workflow, setting Vite's `base` to the repository name, or to another static HTTPS host if the user prefers. Write `DEPLOY.md` with the live URL, how to redeploy, and the iPhone steps: open the URL in Safari, tap Share, then Add to Home Screen.
+
+## Finished means
+
+Every acceptance criterion in SPEC.md section 10 holds, `QUESTIONS.md` has no unanswered entries, and `DEPLOY.md` exists.
