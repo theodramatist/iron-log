@@ -1,0 +1,380 @@
+{
+  "meta": {
+    "name": "Retraining Tracker",
+    "programName": "Retraining Protocol",
+    "programVersion": "2026-11-02 (audited)",
+    "units": "lb",
+    "notes": "Constants for the progression engine. RULES.md defines how they are used. PROTOCOL.md is the human-readable plan. Where this file and RULES.md disagree, RULES.md wins and the disagreement is a bug to report."
+  },
+  "athlete": {
+    "startDate": "2026-11-02",
+    "timeZone": "America/Chicago",
+    "ageBracket": null,
+    "ageBracketOptions": ["under40", "40plus"],
+    "ageBracketIfUnset": "40plus",
+    "bodyweightLb": 270,
+    "notes": "ageBracket is asked during setup. It only affects the missed-training table (RULES.md section 11)."
+  },
+  "schedule": {
+    "liftDays": ["Mon", "Wed", "Fri"],
+    "conditioningDays": ["Tue", "Thu"],
+    "offDays": ["Sat", "Sun"],
+    "maxSessionMinutes": 80,
+    "maxLiftingSessionsPerWeek": 3,
+    "maxConditioningSessionsPerWeek": 2,
+    "swapTodayAllowed": true,
+    "swapDisplacedConditioning": "dropped, not moved",
+    "consecutiveLiftingDaysNeedConfirmation": true,
+    "alternation": "A and B alternate by the last completed lifting session, not by the calendar (RULES.md section 1).",
+    "firstCompletedSession": { "date": "2026-11-02", "workout": "A" }
+  },
+  "calendarNotes": [
+    { "date": "2026-11-26", "label": "Thanksgiving: a conditioning day. If it costs a session, use the missed-day rule." },
+    { "date": "2027-01-01", "label": "New Year's Day: a lifting day in the maintenance break's push week. Gyms may close or cut hours." },
+    { "date": "2027-02-10", "label": "Ash Wednesday: a lifting day. If it costs a session, use the missed-day rule." }
+  ],
+  "equipment": {
+    "barLb": 45,
+    "plateInventory": [
+      { "lb": 45, "pairs": null },
+      { "lb": 25, "pairs": null },
+      { "lb": 10, "pairs": null },
+      { "lb": 5, "pairs": null },
+      { "lb": 2.5, "pairs": null },
+      { "lb": 1.25, "pairs": 1 },
+      { "lb": 0.5, "pairs": 1 }
+    ],
+    "plateInventoryNotes": "pairs null means unlimited. The user edits this in Settings. Loadable weights follow RULES.md section 3.",
+    "deadliftWarmupStartLb": 135,
+    "deadliftWarmupStartWhenWorkAtLeastLb": 155,
+    "deadliftLightCue": "Raise the bar to plate height on blocks for the empty-bar sets.",
+    "assistMachine": {
+      "stackStepLb": 10,
+      "fiveLbStepsPossible": true,
+      "twoPointFiveLbStepsPossible": true,
+      "notes": "5-lb steps need a 5-lb stack or a half-step magnet on a 10-lb stack. 2.5-lb steps need a 2.5-lb add-on weight. The user sets both in Settings."
+    },
+    "conditioning": ["air bike", "SkiErg"]
+  },
+  "lifts": {
+    "squat": { "label": "Squat", "type": "barbell", "workSets": 3, "reps": 5 },
+    "press": { "label": "Press", "type": "barbell", "workSets": 3, "reps": 5 },
+    "bench": { "label": "Bench press", "type": "barbell", "workSets": 3, "reps": 5 },
+    "deadlift": { "label": "Deadlift", "type": "barbell", "workSets": 1, "reps": 5 },
+    "powerClean": { "label": "Power clean", "type": "barbell", "workSets": 5, "reps": 3, "optional": true },
+    "row": { "label": "Barbell row", "type": "barbell", "workSets": 3, "reps": 5, "optional": true },
+    "chin": { "label": "Chin-up (assisted)", "type": "assisted", "workSets": 3, "reps": 5 },
+    "dip": { "label": "Dip (assisted)", "type": "assisted", "workSets": 3, "reps": 5 }
+  },
+  "workouts": {
+    "A": [
+      { "slot": 1, "lift": "squat" },
+      { "slot": 2, "lift": "press" },
+      { "slot": 3, "lift": "deadlift" },
+      { "slot": 4, "assistanceBlock": ["chin", "dip"], "rounds": 3, "superset": true }
+    ],
+    "B": [
+      { "slot": 1, "lift": "squat" },
+      { "slot": 2, "lift": "bench" },
+      { "slot": 3, "byProgramWeek": { "1-2": "deadlift", "3+": "pullChoice" } },
+      { "slot": 4, "assistanceBlock": ["chin", "dip"], "rounds": 3, "superset": true }
+    ],
+    "pullChoice": {
+      "options": ["powerClean", "row"],
+      "default": "row",
+      "notes": "Set in Settings. Power cleans only if he already cleans well."
+    },
+    "beforeLifting": "5 easy minutes on the air bike as a warm-up. It doesn't count as conditioning.",
+    "splitChinsDipsWhenAchy": { "chin": "B", "dip": "A" },
+    "substitutions": {
+      "assistMachineDown": [
+        { "exercise": "Lat pulldown", "sets": 3, "reps": 8, "repsToSpare": 2, "replaces": "chin" },
+        { "exercise": "Incline push-up", "sets": 3, "reps": null, "repsToSpare": 2, "replaces": "dip" }
+      ],
+      "affectsAssistanceState": false
+    }
+  },
+  "warmups": {
+    "barSets": [ { "weight": "bar", "reps": 5 }, { "weight": "bar", "reps": 5 } ],
+    "rampPercents": [0.4, 0.55, 0.7, 0.85],
+    "rampReps": [5, 5, 3, 2],
+    "minGapLb": 10,
+    "roundToLb": 5,
+    "notes": "RULES.md section 9."
+  },
+  "rounding": {
+    "progression": "Largest loadable weight at or below lcw + jump. If that is not above lcw, the smallest loadable weight above lcw, with a note (RULES.md section 3).",
+    "percentWeightsToLb": { "default": 2.5, "deadlift": 5 },
+    "warmupsToLb": 5
+  },
+  "effort": {
+    "categories": [
+      { "id": "light", "label": "Light, 5+ reps left" },
+      { "id": "rir3to4", "label": "3–4 reps left" },
+      { "id": "rir1to2", "label": "1–2 reps left" },
+      { "id": "grind", "label": "A grind, 0 left" },
+      { "id": "missed", "label": "Missed reps" }
+    ],
+    "cleanRowCategories": [
+      { "id": "crisp", "label": "Every rep crisp" },
+      { "id": "notCrisp", "label": "A slow rep" }
+    ],
+    "judgeBy": "the slowest rep of the last work set"
+  },
+  "jumpTableLb": {
+    "squat": { "light": 20, "rir3to4": 10, "rir1to2": 5, "grind": 2.5 },
+    "deadlift": { "light": 30, "rir3to4": 15, "rir1to2": 10, "grind": 5 },
+    "press": { "light": 10, "rir3to4": 5, "rir1to2": 2.5, "grind": 1 },
+    "bench": { "light": 10, "rir3to4": 5, "rir1to2": 5, "grind": 2.5 },
+    "powerClean": { "crisp": 5, "notCrisp": 2.5, "afterAnyNotCrispOrMiss": 2.5 },
+    "row": { "crisp": 5, "notCrisp": 2.5, "afterAnyNotCrispOrMiss": 2.5 }
+  },
+  "shortNightRowShift": {
+    "light": "rir3to4",
+    "rir3to4": "rir1to2",
+    "rir1to2": "grind",
+    "grind": "grind",
+    "cleanRowJumpLb": 2.5,
+    "notes": "Applies when the check-in says last night was under 6 hours (RULES.md section 4)."
+  },
+  "smallestJumpLb": { "squat": 2.5, "deadlift": 5, "press": 1, "bench": 2.5, "powerClean": 2.5, "row": 2.5 },
+  "maxJumpAfterAnyMissLb": { "squat": 5, "deadlift": 10, "press": 2.5, "bench": 5, "powerClean": 2.5, "row": 2.5 },
+  "stallLadder": {
+    "missesAtSameWeightForStall": 2,
+    "bridgeShortSets": {
+      "squat": { "sets": 5, "reps": 3 },
+      "press": { "sets": 5, "reps": 3 },
+      "bench": { "sets": 5, "reps": 3 },
+      "row": { "sets": 5, "reps": 3 },
+      "deadlift": { "sets": 2, "reps": 3 },
+      "powerClean": null
+    },
+    "bridgeRounds": { "squat": 2, "press": 1, "bench": 1, "row": 1, "deadlift": 1, "powerClean": 0 },
+    "shortSetMinRestSec": 300,
+    "resetFraction": 0.9,
+    "holdIfMaintenanceBreakWithinDays": 14,
+    "earlyStallProgramWeeksMax": 8,
+    "foodLever": {
+      "programWeeksMax": 8,
+      "question": "Has recovery felt poor?",
+      "extraRounds": 1,
+      "powerCleanExtra": "one more session of normal sets at the same weight",
+      "global": true
+    },
+    "graduation": "A stall at or below lastResetFrom, after at least one reset (RULES.md section 5).",
+    "graduationMessage": "The novice run is over for the {lift}. Hold it at its last completed weight and sets until you pick its next program, such as Starting Strength's Texas Method or a Barbell Medicine template.",
+    "onTheLadderStages": ["BRIDGE_SHORT", "BRIDGE_NORMAL", "HOLD"],
+    "recentResetCountsAsOnLadderDays": 7
+  },
+  "lightSquatDay": {
+    "switchOnWhenSuggestedJumpAtMostLb": 5,
+    "switchOnAfterConsecutiveMadeHeavySessions": 2,
+    "fractionOfMostRecentHeavySquat": 0.8,
+    "sets": 2,
+    "reps": 5,
+    "which": "The second lifting session of a calendar week, when a third can still follow it that week (RULES.md section 6)."
+  },
+  "deadliftOncePerWeek": {
+    "switchOnWhenSuggestedJumpAtMostLb": 5,
+    "switchOnAfterConsecutiveMadeHeavySessions": 2,
+    "earliestProgramWeek": 3,
+    "rule": "A Workout A runs the heavy deadlift only if no heavy deadlift has been done yet that calendar week. Otherwise slot 3 runs pullChoice."
+  },
+  "assistance": {
+    "sets": 3,
+    "reps": 5,
+    "made": "Every prescribed rep done.",
+    "madeWithRoom": "Made, with 1 or more reps to spare on the last set.",
+    "initialStepLb": 5,
+    "smallStepLb": 2.5,
+    "smallStepIsPermanent": true,
+    "madeWithZeroSpareStepLb": 2.5,
+    "repsBuild": { "startTarget": 6, "endTarget": 8, "advanceOn": "made", "thenLowerAssistanceLb": 5, "returnTarget": 5 },
+    "missesForRepsBuild": 2,
+    "eccentricSeconds": 3,
+    "blockRestSec": 75,
+    "negatives": {
+      "appliesTo": "chin",
+      "whenAssistanceAtMostLb": 50,
+      "whenAssistanceAboveLb": 0,
+      "reps": 2,
+      "seconds": "3–5",
+      "onWorkout": "A",
+      "whenSplit": "every chin day"
+    },
+    "bodyweight": {
+      "sets": 3,
+      "repsCap": 5,
+      "targetIncreasePerSessionReps": 1,
+      "thenAddedLoadLb": 2.5
+    },
+    "weightedStepLb": 2.5,
+    "lightWeekExtraLb": 10,
+    "lightWeekRounds": 2,
+    "dipDepthCue": {
+      "throughProgramWeek": 4,
+      "early": "Lower until your upper arms are parallel to the floor, and no deeper.",
+      "later": "You may go until your shoulders are just below your elbows. Stop before your shoulders roll forward."
+    },
+    "calibration": {
+      "dip": "Start with the current chin assistance. Sets of up to 5, taking off 10 lb a set (5 lb once it feels close), until 5 solid reps leave 2 or 3 to spare, stopping at upper arms parallel."
+    }
+  },
+  "calibration": {
+    "bench": { "repsPerSet": 5, "stepLbFast": 20, "stepLbSlowing": 10, "buttons": ["Fast", "Starting to slow", "Clearly slowed"] },
+    "row": { "repsPerSet": 5, "stepLbFast": 20, "stepLbSlowing": 10, "buttons": ["Fast", "Starting to slow", "Clearly slowed"] },
+    "powerClean": { "repsPerSet": 3, "stepLbFast": 20, "stepLbSlowing": 10, "buttons": ["Fast", "Starting to slow", "Bar speed dropped"] },
+    "notes": "The set that ends the ramp is the work weight and the first work set. If it missed reps, the set before it becomes the work weight with fresh work sets (RULES.md section 9)."
+  },
+  "conditioning": {
+    "countingRule": "conditioningWeek = 1 + earlier calendar weeks in which both sessions were completed and that were neither light nor floor weeks (RULES.md section 8).",
+    "phases": [
+      { "phase": 1, "fromWeek": 1, "toWeek": 2, "tueEasyMin": [20, 30], "thuEasyMin": [20, 30], "thuIntervals": 0, "afterLiftMin": 0 },
+      { "phase": 2, "fromWeek": 3, "toWeek": 4, "tueEasyMin": [30, 40], "thuEasyMin": [30, 40], "thuIntervals": 6, "afterLiftMin": 0 },
+      { "phase": 3, "fromWeek": 5, "toWeek": 8, "tueEasyMin": [40, 50], "thuEasyMin": [40, 50], "thuIntervals": 8, "afterLiftMin": 10, "afterLiftOptional": true },
+      { "phase": 4, "fromWeek": 9, "toWeek": null, "tueEasyMin": [50, 60], "thuEasyMin": [50, 60], "thuIntervals": [8, 10], "thuIntervalsDefault": 8, "afterLiftMin": 10, "afterLiftOptional": true }
+    ],
+    "defaultTargetMinByConditioningWeek": [20, 25, 30, 35, 40, 45, 50, 50, 50, 55, 60],
+    "defaultTargetMinAfterListEnds": 60,
+    "minimumSessionMin": 20,
+    "intervalsNeedAtLeastMin": 30,
+    "interval": {
+      "hardSec": 30,
+      "easySec": 90,
+      "machine": "SkiErg",
+      "fallbackMachine": "air bike",
+      "intensity": "hard but not all-out, about 8 out of 10, a few words at a time",
+      "placement": "In the middle of the session's total time, with equal easy time before and after."
+    },
+    "easy": { "machine": "air bike", "intensity": "can talk in full sentences but couldn't sing", "fallback": "brisk incline treadmill walk" },
+    "noIntervalsWhen": ["light week", "last night under 6 hours", "the rest of a week cut short by illness"],
+    "weeklyTargetMinutes": 150,
+    "screeningAcknowledgementBeforeFirstIntervals": true,
+    "flatAfterIntervals": "Asked at the first lifting session after an interval session. Yes halves the next interval session's rounds, rounded down.",
+    "layoff": { "dropOnePhaseAfterDays": 21, "restartAfterDays": 60 },
+    "ceiling": "Never add sessions to pay for food."
+  },
+  "checkIns": {
+    "liftingStart": [
+      { "id": "lastNightUnder6", "text": "Last night under 6 hours?" },
+      { "id": "mostNightsUnder7", "text": "Most nights under 7 hours since your last lifting session?" },
+      { "id": "jointPain", "text": "Any joint pain right now?" }
+    ],
+    "conditioningStart": [
+      { "id": "lastNightUnder6", "text": "Last night under 6 hours?" }
+    ],
+    "liftingEnd": [
+      { "id": "warmupsHeavy", "text": "Did warm-ups feel heavy today?" }
+    ],
+    "afterIntervals": { "id": "flatFromIntervals", "text": "Flat from the intervals?" }
+  },
+  "deload": {
+    "lightWeekTriggers": [
+      "Two or more barbell lifts on the ladder at once.",
+      "Most nights under 7 hours at two lifting sessions in a row.",
+      "Warm-ups felt heavy at two lifting sessions in a row.",
+      "A declared overloaded week."
+    ],
+    "lightWeekChoices": ["Rest of this week", "Next week", "Not now"],
+    "lightWeek": {
+      "fractionOfLcw": 0.9,
+      "sets": { "3x5": { "sets": 2, "reps": 5 }, "1x5": { "sets": 1, "reps": 5 }, "5x3": { "sets": 3, "reps": 3 } },
+      "assistanceExtraLb": 10,
+      "assistanceRounds": 2,
+      "conditioning": "easy only, no intervals, same target",
+      "frozen": true,
+      "afterward": "NORMAL lifts repeat lcw with no jump. Lifts on the ladder resume the prescription they had."
+    },
+    "floorWeek": {
+      "maxLiftingSessions": 2,
+      "countsSessionsAlreadyDone": true,
+      "nonConsecutiveDays": true,
+      "sessions": "The next two workouts in A/B order, slots 1 to 3 as they would normally run, with no chin-and-dip block.",
+      "sets": { "3x5": { "sets": 2, "reps": 5 }, "1x5": { "sets": 1, "reps": 5 }, "5x3": { "sets": 3, "reps": 3 } },
+      "load": "lcw",
+      "assistance": false,
+      "conditioning": false,
+      "frozen": true,
+      "afterward": "Same as after a light week.",
+      "insideMaintenanceBreakNote": "Eat on the maintenance pattern this week: three Mains a day."
+    },
+    "scheduledFloorWeeks": [
+      { "start": "2026-12-21", "end": "2026-12-25", "label": "Christmas week" },
+      { "start": "2027-03-22", "end": "2027-03-26", "label": "Holy Week" }
+    ]
+  },
+  "illness": {
+    "question": "Fever, widespread aches, unusual fatigue, chest congestion, a hacking cough, or an upset stomach?",
+    "sickModeMessage": "Rest. Come back once you've gone 24 hours without a fever and without fever medicine.",
+    "returnRule": "The first lifting session back uses the missed-training table by daysAway, and the rest of that calendar week is a light week with no intervals.",
+    "mildRule": "Above-the-neck symptoms only: the rest of the calendar week is a light week, with easy conditioning.",
+    "source": "https://www.mayoclinic.org/healthy-lifestyle/fitness/expert-answers/exercise/faq-20058494"
+  },
+  "missedTraining": {
+    "measure": "Calendar days since the last completed lifting session of any kind.",
+    "bands": [
+      { "maxDaysAway": 5, "action": "normal" },
+      { "maxDaysAway": 7, "action": "repeat" },
+      { "maxDaysAway": 21, "action": "drop", "fraction": { "under40": 0.95, "40plus": 0.9 } },
+      { "maxDaysAway": 60, "action": "drop", "fraction": 0.9, "ifLastWarmupHeavyFractionOfPreLayoffLcw": 0.8 },
+      { "maxDaysAway": null, "action": "restartLight", "defaultFraction": 0.6, "freshNoviceRun": true }
+    ],
+    "chinsDips": { "repeatUpToDays": 7, "addLbUpTo21Days": 10, "addLbUpTo60Days": 20, "over60Days": "recalibrate" }
+  },
+  "nutritionPrompts": {
+    "liftingDay": "Shake after lifting.",
+    "conditioningDayExtra": [
+      { "phases": [1, 2], "prompt": "Add a second Shake today." },
+      { "phases": [3, 4], "prompt": "Add a second Breakfast today." }
+    ],
+    "earlyStallNote": "If recovery feels poor, your eating plan's lever comes before any reset: a second Shake on lifting days.",
+    "foodLeverOnLiftingDay": "Second Shake today (your eating plan's lever).",
+    "noCompensation": "Don't use conditioning to pay for food.",
+    "maintenanceBreaks": {
+      "cadence": "8 weeks of deficit, then 2 weeks at maintenance. The first break was moved a week early, to December 21.",
+      "computed": [
+        { "start": "2026-12-21", "end": "2027-01-03" },
+        { "start": "2027-03-01", "end": "2027-03-14" },
+        { "start": "2027-05-10", "end": "2027-05-23" },
+        { "start": "2027-07-19", "end": "2027-08-01" },
+        { "start": "2027-09-27", "end": "2027-10-10" },
+        { "start": "2027-12-06", "end": "2027-12-19" }
+      ],
+      "banner": "Maintenance break: keep lifting normally and push."
+    }
+  },
+  "safety": {
+    "screeningNote": "Under ACSM's screening guidance, someone returning from inactivity with no known heart, metabolic, or kidney disease and no symptoms can start at light to moderate effort and build gradually. With a known heart, metabolic, or kidney condition, get medical clearance before heavy lifting or intervals. Stop the session, and get checked before training again, if you have chest pain or pressure, fainting, unusual breathlessness, dizziness, or a racing or irregular heartbeat during or after effort. Chest pain that doesn't ease within a few minutes of stopping is a 911 call. Ankle swelling, calf pain on short walks, or breathlessness lying flat call for a doctor's visit before you train. If your blood pressure hasn't been checked this year, get it checked before the weights get heavy.",
+    "screeningAtSetup": true,
+    "painRule": "Joint pain, sharp pain, or pain that changes how you move ends that lift for the day. Muscle soreness is normal in the first two weeks.",
+    "painReturnFraction": 0.9,
+    "pausedLiftQuestion": "Is the {lift} pain gone?",
+    "pausedLiftStillThere": "See a doctor or physical therapist before loading it again.",
+    "clinicianClearedButton": "Cleared by a clinician",
+    "stopSessionMessage": "Stop now. Chest pain that doesn't ease within a few minutes of stopping is a 911 call. Get checked before training again.",
+    "sorenessNoteProgramWeeks": [1, 2],
+    "sorenessNote": "Heavy soreness is normal after a year off. Joint pain, sharp pain, or pain that changes how you move is not."
+  },
+  "timeBudget": {
+    "cutOrder": [
+      "Skip the easy spin after lifting.",
+      "Drop one warm-up set from each remaining lift.",
+      "Do the chin sets in the rests between press or bench sets, keeping at least 3 minutes between press or bench sets, and do the dips after the last one."
+    ],
+    "never": "Never shorten the rest between squat or deadlift work sets.",
+    "restDefaultsSec": { "light": 120, "rir3to4": 150, "rir1to2": 210, "grind": 300, "missed": 300, "noHistory": 120, "chinDipBlock": 75, "shortSetsMin": 300 },
+    "restAdjustSec": 30
+  },
+  "startingState": {
+    "asOf": "2026-11-02",
+    "workout": "A",
+    "squat": { "lcw": 95, "result": "3x5 made", "effortRating": "ask at setup" },
+    "press": { "lcw": 65, "result": "3x5 made", "effortRating": "ask at setup" },
+    "deadlift": { "lcw": 145, "result": "1x5 made", "effortRating": "ask at setup" },
+    "chin": { "assistanceLb": 160, "result": "3x5 made", "spareReps": "ask at setup" },
+    "bench": { "needsCalibration": true },
+    "dip": { "needsCalibration": true },
+    "powerClean": { "needsCalibration": true },
+    "row": { "needsCalibration": true }
+  }
+}

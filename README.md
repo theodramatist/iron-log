@@ -1,56 +1,69 @@
 # Iron Log
 
-A self-contained iPhone workout tracker (PWA) for **Starting Strength** and the
-**Barbell Medicine Beginner Template**. No build step, no dependencies; works fully
-offline once installed to the Home Screen.
+An iPhone app that runs the Retraining Protocol for one lifter. It tells you what to lift each day, records what you did, and works out the next session on its own, including stalls, the 5×3 bridge, resets, light and floor weeks, illness, missed training, short nights, broken equipment, and pain stops. It lives on your home screen like a regular app, works with no signal, and keeps your data on your phone.
 
-## Files
-- `index.html` — the entire app (HTML + CSS + JS + all program data, inline)
-- `manifest.webmanifest` — PWA manifest (name, icon, standalone display)
-- `sw.js` — service worker for offline caching (bump `CACHE` when you change `index.html`)
-- `icons/` — app icons (192 / 512 / 180 apple-touch)
-- `.nojekyll` — tells GitHub Pages to serve files untouched
-- `deploy.sh` — one-step publish to GitHub Pages
-- `README.md` — this file
+## What's in the repo
 
-## Deploy to GitHub Pages
+| Path | What it is |
+| --- | --- |
+| `CLAUDE.md` | Build instructions for Claude Code, in milestones, plus this repo's own instructions |
+| `SPEC.md` | What the app looks like, how it's built, and how to tell it's finished |
+| `RULES.md` | Every decision the app makes, written precisely enough to code |
+| `program.json` | The numbers behind the rules: jumps, percentages, dates, and phases |
+| `TEST_SCENARIOS.md` | 96 worked cases the app must get right |
+| `PROTOCOL.md` | The audited Retraining Protocol, as you read it |
+| `QUESTIONS.md` | Questions from the build and how each was decided |
+| `DEPLOY.md` | The live address, how to deploy, and how to put the app on the iPhone |
+| `src/engine/` | The rules engine: pure TypeScript, tested against every scenario |
+| `src/data/` | On-phone storage, backups, and drafts |
+| `src/ui/` | The screens, and the session drafts behind them |
+| `tests/` | One test file per RULES.md section, named by scenario ID |
+| `e2e/smoke.mjs` | A browser walk through the first week, checked against the engine |
+| `.github/workflows/deploy.yml` | Tests, builds, and publishes the app to GitHub Pages on every push to `main` |
+| `docs/AUDIT.md` | The audit of the original Iron Log, which this rework replaced |
+| `docs/AUDIT-M3.md` | The audit of the rebuilt app at M3, with findings ranked by severity |
 
-One-time setup — install the GitHub CLI and sign in:
+## Working on it
+
+```bash
+npm install
 ```
-brew install gh        # macOS
-gh auth login
+
+```bash
+npm test
 ```
 
-Then, from inside this folder (or just tell Claude Code "run deploy.sh"):
+```bash
+npm run dev
 ```
-bash deploy.sh
+
+The dev server serves the app at `http://localhost:5173/iron-log/`, the same path it has on GitHub Pages. In development, add `?today=2026-11-04` to that address to see any day. The smoke test clicks through the first week in a headless browser:
+
+```bash
+npm run smoke
 ```
-The first run creates a public `iron-log` repo, pushes, enables Pages, and prints your
-URL — `https://<your-username>.github.io/iron-log/`. Re-run any time to push updates.
 
-Options:
-- `bash deploy.sh my-repo-name`   — use a different repo name
-- `MSG="add feature" bash deploy.sh`   — custom commit message
+The milestones in `CLAUDE.md` say what comes next. After each one, read its report and answer anything new in `QUESTIONS.md`.
 
-On iPhone: open the printed URL in **Safari → Share → Add to Home Screen**.
+## How to install it on your iPhone
 
-## Using it
-- **Starting Strength** — Workouts A/B alternate (barbell rows replace the power clean;
-  chin-ups on A, dips on B). Hit all sets at the target reps and the weight auto-bumps next
-  time; miss a lift three sessions running and it deloads 10%. Sets and reps are adjustable
-  per session on the workout screen (e.g. 5×3 one day, 3×5 the next). No RPE.
-- **Barbell Medicine** — Blocks I–III, weeks 1–4 (repeat week 4 while your e1RMs climb,
-  advance when two-plus lifts stall). RPE-driven: enter weight / reps / RPE and it estimates
-  your 1RM and pre-fills target weights.
-- **Rest timer** (both) — auto-starts when you check off a set; tap to pause, ±30s, skip.
-  Defaults 3:00 (SS) / 4:00 (BM), editable in Setup.
-- **Plate view** — shows the loaded bar and what to load per side. Add your fractional plates
-  in **Setup → Plates** so targets round to a weight you can actually load.
-- Data is stored on the device (localStorage). Setup has backup + reset.
+The app lives at https://theodramatist.github.io/iron-log/. `DEPLOY.md` has the full steps, including how to log a session from an earlier day.
 
-## Tweaking
-Most defaults live in the `defaults()` function near the top of the `<script>` in
-`index.html`: starting weights, per-session increments, rest times, units. The Barbell
-Medicine program lives in the `DATA` object at the very top of the script. After editing
-`index.html`, bump `CACHE` in `sw.js` (e.g. `ironlog-v3` → `ironlog-v4`) so installed phones
-pick up the change, then re-run `deploy.sh`.
+1. Open the address in Safari.
+2. Tap Share, then Add to Home Screen.
+3. Open the app from your home screen, not from Safari. Your data lives with the home-screen app.
+4. Walk through the setup screens. The app will ask how Monday's last sets felt, so have that in mind.
+
+Sessions done before the app was ready go in as past-date entries.
+
+## Keeping your data safe
+
+The app stores everything on your phone. Back up from Settings with Export once a week, and save the file to iCloud Drive. The app reminds you after Friday's session if a week has passed.
+
+## What the app won't do
+
+It doesn't track food. It shows your eating plan's prompts on the right days, such as the second Shake on conditioning days, and nothing more. It doesn't sync between devices, send notifications, use kilograms, or program a lift after it leaves the novice run. At that point it just logs what you do.
+
+## Changing the plan later
+
+Change `RULES.md` and `program.json` first, then add a test to `TEST_SCENARIOS.md`, then ask Claude Code to update the app. If the app and `PROTOCOL.md` ever disagree, the app follows `RULES.md`, so keep the protocol in step.

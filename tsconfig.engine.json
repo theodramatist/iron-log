@@ -1,0 +1,9 @@
+{
+  "//": "The engine is type-checked without DOM types, so it cannot reach the DOM, storage, or browser APIs (SPEC.md acceptance criterion 2). ESLint separately bans reading the clock.",
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "lib": ["ES2022"],
+    "types": []
+  },
+  "include": ["src/engine", "src/program"]
+}
