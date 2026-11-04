@@ -158,7 +158,7 @@ describe('§1 Scheduling', () => {
     expect(log.day('2026-11-07', '2026-11-03').kind).toBe('off');
   });
 
-  it('T100 Sunday stays off', () => {
+  it('T100 Two moves fill the weekend', () => {
     const log = buildLog().cond('2026-11-03').skip('2026-11-04', 'lifting');
     expect(log.day('2026-11-05', '2026-11-05').kind).toBe('lifting');
     log.skip('2026-11-05', 'lifting');
@@ -171,8 +171,24 @@ describe('§1 Scheduling', () => {
       ['2026-11-05', 'lifting', 'skipped'],
       ['2026-11-06', 'lifting', 'planned'],
       ['2026-11-07', 'conditioning', 'planned'],
-      ['2026-11-08', 'off', 'off'],
+      ['2026-11-08', 'lifting', 'planned'],
     ]);
+  });
+
+  it('T104 Saturday or Sunday', () => {
+    const base = () => buildLog().cond('2026-11-03').lift('2026-11-04').cond('2026-11-05').skip('2026-11-06', 'lifting');
+    expect(base().day('2026-11-07', '2026-11-06')).toMatchObject({ kind: 'lifting', workout: 'A' });
+    expect(base().day('2026-11-08', '2026-11-06').kind).toBe('off');
+
+    const sunday = base().skip('2026-11-07', 'lifting');
+    expect(sunday.day('2026-11-07', '2026-11-07')).toMatchObject({ kind: 'lifting', status: 'skipped' });
+    expect(sunday.day('2026-11-08', '2026-11-07')).toMatchObject({ kind: 'lifting', status: 'planned', workout: 'A' });
+    sunday.lift('2026-11-08');
+    expect(sunday.day('2026-11-09', '2026-11-09')).toMatchObject({ kind: 'lifting', workout: 'B', needsConsecutiveConfirm: true });
+
+    const dropped = base().skip('2026-11-07', 'lifting').skip('2026-11-08', 'lifting');
+    expect(dropped.day('2026-11-08', '2026-11-08')).toMatchObject({ kind: 'lifting', status: 'skipped' });
+    expect(dropped.day('2026-11-09', '2026-11-09')).toMatchObject({ kind: 'lifting', workout: 'A', needsConsecutiveConfirm: false });
   });
 
   it('T101 Time after all', () => {

@@ -1,7 +1,8 @@
 // "No time today" (RULES.md section 1, Q22). A lifting session skipped for
 // lack of time moves to the next day, and the rest of its week moves with it,
-// a day each, through Saturday. Sunday stays off, so whatever is pushed past
-// Saturday drops. A skipped conditioning session drops and moves nothing.
+// a day each. The weekend takes what moves there: Saturday first, then
+// Sunday if Saturday is skipped too. Whatever is pushed past Sunday drops. A
+// skipped conditioning session drops and moves nothing.
 
 import { addDays, weekdayIndex, weekStart } from './dates';
 import { READINGS } from './readings';
@@ -35,16 +36,14 @@ export function weekShift(st: EngineState, date: LocalDate): number {
 
 /**
  * The day of the default week whose session falls on `date`: `date` itself
- * in a week nothing has moved, or null on Sunday, and on a Saturday nothing
- * has moved to.
+ * in a week nothing has moved, or null on a weekend day nothing has moved to.
  */
 export function slotSource(st: EngineState, date: LocalDate): LocalDate | null {
-  if (weekdayIndex(date) === 6) return null;
   const source = addDays(date, -weekShift(st, date));
   return weekdayIndex(source) <= 4 ? source : null;
 }
 
-/** The last day of `date`'s week a session can fall on: Friday, or Saturday once a skip has moved the week (section 6). */
+/** The last day of `date`'s week a session can fall on: Friday, or Sunday once a skip has moved the week (section 6). */
 export function lastSessionDay(st: EngineState, date: LocalDate): LocalDate {
-  return addDays(weekStart(date), weekShift(st, date) > 0 ? 5 : 4);
+  return addDays(weekStart(date), weekShift(st, date) > 0 ? 6 : 4);
 }
