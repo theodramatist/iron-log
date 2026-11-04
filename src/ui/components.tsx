@@ -16,7 +16,9 @@ const PLATE_COLOR: Record<string, string> = {
   '2.5': '#b62d2d',
   '1.25': '#7c8aa0',
   '1': '#9aa6b6',
+  '0.75': '#b3bdca',
   '0.5': '#c2cbd7',
+  '0.25': '#d5dce5',
 };
 
 export function PlateBar(props: { weight: number; plates: readonly number[] }) {

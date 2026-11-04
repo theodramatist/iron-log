@@ -121,4 +121,64 @@ describe('§1 Scheduling', () => {
       expect(prescribe(without, date)).toEqual(prescribe(withNotes, date));
     }
   });
+
+  it('T97 No time on Wednesday', () => {
+    const log = buildLog().cond('2026-11-03');
+    const wednesday = log.day('2026-11-04', '2026-11-04');
+    expect(wednesday).toMatchObject({ kind: 'lifting', status: 'planned', workout: 'B' });
+    log.skip('2026-11-04', 'lifting');
+    expect(log.day('2026-11-04', '2026-11-04')).toMatchObject({ kind: 'lifting', status: 'skipped', workout: null, swapTo: null });
+    const thursday = log.day('2026-11-05', '2026-11-04');
+    expect(thursday).toMatchObject({ kind: 'lifting', status: 'planned', workout: 'B' });
+    expect(thursday.summary).toEqual(wednesday.summary);
+    expect(log.week('2026-11-02', '2026-11-04').days.map((d) => [d.date, d.kind, d.status, d.workout])).toEqual([
+      ['2026-11-02', 'lifting', 'done', 'A'],
+      ['2026-11-03', 'conditioning', 'done', null],
+      ['2026-11-04', 'lifting', 'skipped', null],
+      ['2026-11-05', 'lifting', 'planned', 'B'],
+      ['2026-11-06', 'conditioning', 'planned', null],
+      ['2026-11-07', 'lifting', 'planned', 'A'],
+      ['2026-11-08', 'off', 'off', null],
+    ]);
+  });
+
+  it('T98 No time on Friday', () => {
+    const log = buildLog().cond('2026-11-03').lift('2026-11-04').cond('2026-11-05').skip('2026-11-06', 'lifting');
+    expect(log.day('2026-11-07', '2026-11-06')).toMatchObject({ kind: 'lifting', status: 'planned', workout: 'A' });
+    expect(log.day('2026-11-08', '2026-11-06').kind).toBe('off');
+    log.lift('2026-11-07');
+    expect(log.day('2026-11-09', '2026-11-09')).toMatchObject({ kind: 'lifting', workout: 'B', needsConsecutiveConfirm: false });
+  });
+
+  it('T99 No time for conditioning', () => {
+    const log = buildLog().skip('2026-11-03', 'conditioning');
+    expect(log.day('2026-11-03', '2026-11-03')).toMatchObject({ kind: 'conditioning', status: 'skipped', conditioning: null });
+    expect(log.day('2026-11-04', '2026-11-03')).toMatchObject({ kind: 'lifting', status: 'planned', workout: 'B' });
+    expect(log.day('2026-11-05', '2026-11-03')).toMatchObject({ kind: 'conditioning', status: 'planned' });
+    expect(log.day('2026-11-07', '2026-11-03').kind).toBe('off');
+  });
+
+  it('T100 Sunday stays off', () => {
+    const log = buildLog().cond('2026-11-03').skip('2026-11-04', 'lifting');
+    expect(log.day('2026-11-05', '2026-11-05').kind).toBe('lifting');
+    log.skip('2026-11-05', 'lifting');
+    expect(
+      log
+        .week('2026-11-02', '2026-11-05')
+        .days.slice(3)
+        .map((d) => [d.date, d.kind, d.status]),
+    ).toEqual([
+      ['2026-11-05', 'lifting', 'skipped'],
+      ['2026-11-06', 'lifting', 'planned'],
+      ['2026-11-07', 'conditioning', 'planned'],
+      ['2026-11-08', 'off', 'off'],
+    ]);
+  });
+
+  it('T101 Time after all', () => {
+    const log = buildLog().cond('2026-11-03').skip('2026-11-04', 'lifting').lift('2026-11-04');
+    expect(log.day('2026-11-04', '2026-11-04')).toMatchObject({ kind: 'lifting', status: 'done', workout: 'B' });
+    expect(log.day('2026-11-05', '2026-11-04').kind).toBe('conditioning');
+    expect(log.day('2026-11-07', '2026-11-04').kind).toBe('off');
+  });
 });

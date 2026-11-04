@@ -8,7 +8,7 @@ None.
 
 ## Answered
 
-The owner accepted every recommendation on 2026-11-03: keep 16 readings as they were, and change Q8 and Q13. Q19 came up while building the screens, and Q20 and Q21 came from the M3 audit (`docs/AUDIT-M3.md`). All three were answered the same day.
+The owner accepted every recommendation on 2026-11-03: keep 16 readings as they were, and change Q8 and Q13. Q19 came up while building the screens, and Q20 and Q21 came from the M3 audit (`docs/AUDIT-M3.md`). All three were answered the same day. Q22 is a feature the owner asked for after launch, on 2026-11-04.
 
 | # | Question | RULES.md | Decision |
 | --- | --- | --- | --- |
@@ -33,3 +33,4 @@ The owner accepted every recommendation on 2026-11-03: keep 16 readings as they 
 | Q19 | When the early-stall note goes away | §5, §13 | Keep: it lasts as long as that lift's stall, clearing when the lift makes the bridge, resets, or graduates, when the food lever turns on, or when he dismisses it. Left up, two notes could fill both banner slots and hide the export reminder. |
 | Q20 | A first calibration that falls in a light or floor week | §9, §10 | Keep: the bench, row, or clean sits out that week with a note and calibrates at its first session of a normal week. Chin and dip calibrations go ahead. |
 | Q21 | A pain return that falls in a light or floor week | §10, §12 | Keep: the return takes the week's sets at 90% (2×5, 1×5 for the deadlift, 3×3 for cleans) and still counts as the return. |
+| Q22 | Skipping a session for lack of time | §1, §6, §8 | **New, at the owner's request:** "No time today" moves a skipped lifting session to the next day and the rest of the week with it. Saturday takes the overflow, and Sunday stays off. A skipped conditioning session just drops. Intervals stay Thursday's (Q8), and the light squat day can look ahead to a moved Saturday session (T97–T103). |

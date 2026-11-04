@@ -9,6 +9,7 @@ import {
   weekdayIndex,
   weekStart,
   weekSummary,
+  type AnyEvent,
   type Banner,
   type DayPlan,
   type LocalDate,
@@ -21,7 +22,7 @@ import { backupReminderDue, exportBackup } from '../backups';
 import { useUpdateReady } from '../update';
 import { nowIso } from '../clock';
 import { Choice, Confirm, Sheet, YesNo } from '../components';
-import { longDate, shortDate, weekdayShort } from '../format';
+import { longDate, shortDate, weekdayLong, weekdayShort } from '../format';
 import { newConditioningDraft } from '../session/conditioning';
 import { newLiftingDraft } from '../session/lifting';
 import { useApp } from '../store';
@@ -69,7 +70,7 @@ export function Today(props: { onStart: (route: SessionRoute) => void }) {
       <button type="button" class="btn btn-primary" onClick={() => void app.log({ type: 'illness', date: today, kind: 'better' })}>
         I'm better
       </button>
-    ) : !doneToday && day.kind !== 'off' ? (
+    ) : !doneToday && day.kind !== 'off' && day.status !== 'skipped' ? (
       <button type="button" class="btn btn-primary" onClick={() => tryStart(day.kind as 'lifting' | 'conditioning')}>
         Start session
       </button>
@@ -97,7 +98,7 @@ export function Today(props: { onStart: (route: SessionRoute) => void }) {
       <Banners banners={day.banners.slice(0, 2)} />
       {day.banners.length < 2 && <BackupReminder />}
 
-      <SessionCard day={day} />
+      <SessionCard day={day} week={week} onUndo={() => day.skipId && void repo.remove(day.skipId)} />
 
       <div class="btn-row">
         {day.kind !== 'sick' && !doneToday && day.swapTo && (
@@ -118,7 +119,7 @@ export function Today(props: { onStart: (route: SessionRoute) => void }) {
       )}
 
       <h2>This week</h2>
-      <WeekStrip days={week.days.slice(0, 5)} today={today} />
+      <WeekStrip days={week.days.filter((d, i) => i < 5 || (i === 5 && (d.kind !== 'off' || d.status === 'done')))} today={today} />
       <div class="card">
         <div class="spread">
           <span class="small muted">Conditioning this week</span>
@@ -155,7 +156,7 @@ export function Today(props: { onStart: (route: SessionRoute) => void }) {
           }}
         />
       )}
-      {menu && <SomethingCameUp onClose={() => setMenu(false)} />}
+      {menu && <SomethingCameUp day={day} onClose={() => setMenu(false)} />}
       {another && (
         <Sheet title="Another session today" onClose={() => setAnother(false)}>
           <p class="note">A session is already logged today. Two on one day is allowed.</p>
@@ -222,11 +223,13 @@ function weekCaps(program: Program, week: WeekSummary, today: LocalDate): { lift
 
 // ------------------------------------------------------------ session card
 
-function SessionCard(props: { day: DayPlan }) {
+function SessionCard(props: { day: DayPlan; week: WeekSummary; onUndo: () => void }) {
   const { program } = useApp();
   const { day } = props;
   const weekTag = day.weekType === 'light' ? 'Light week' : day.weekType === 'floor' ? 'Floor week' : null;
   const done = day.status === 'done';
+  const skipped = day.status === 'skipped';
+  const movedTo = props.week.days.find((d) => d.date > day.date && d.kind === 'lifting' && d.status === 'planned');
   return (
     <section class={done ? 'card done' : 'card'} aria-label="Today's session">
       <div class="spread">
@@ -237,6 +240,23 @@ function SessionCard(props: { day: DayPlan }) {
         {done && <span class="stage">Done</span>}
       </div>
       {day.kind === 'sick' && <p>{program.illness.sickModeMessage}</p>}
+      {skipped && (
+        <>
+          <p class="muted">
+            No time today.{' '}
+            {day.kind === 'conditioning'
+              ? "This conditioning session isn't made up."
+              : movedTo
+                ? `The session moved to ${weekdayLong(movedTo.date)}, and the rest of the week moved with it.`
+                : "Sunday stays off, so this session isn't made up. The next one picks up where you left off."}
+          </p>
+          <div class="btn-row">
+            <button type="button" class="chip" onClick={props.onUndo}>
+              Undo
+            </button>
+          </div>
+        </>
+      )}
       {day.kind === 'off' && !done && <p class="muted">{day.message ?? 'Off.'}</p>}
       {day.summary.length > 0 && (
         <ul class="lines">
@@ -277,6 +297,7 @@ function SessionCard(props: { day: DayPlan }) {
 
 function cardTitle(day: DayPlan): string {
   if (day.kind === 'sick') return 'Sick';
+  if (day.status === 'skipped') return day.kind === 'lifting' ? 'Lifting skipped' : 'Conditioning skipped';
   if (day.status === 'done') return day.loggedLifting.length > 0 ? `Workout ${day.workout ?? ''}`.trim() : 'Conditioning';
   if (day.kind === 'lifting') return `Workout ${day.workout}`;
   if (day.kind === 'conditioning') return 'Conditioning';
@@ -409,21 +430,28 @@ function BackupReminder() {
 
 function WeekStrip(props: { days: DayPlan[]; today: LocalDate }) {
   return (
-    <div class="strip" role="list" aria-label="Monday to Friday">
+    <div class="strip" role="list" aria-label="This week" style={{ gridTemplateColumns: `repeat(${props.days.length}, 1fr)` }}>
       {props.days.map((d) => {
         const what = d.kind === 'lifting' ? 'lifting' : d.kind === 'conditioning' ? 'conditioning' : d.kind === 'sick' ? 'sick' : 'off';
         const doneKind = d.loggedLifting.length > 0 ? 'lifting' : 'conditioning';
-        const label = d.status === 'done' ? `${doneKind}, done` : d.status === 'missed' ? `${what}, missed` : d.status === 'off' ? 'off' : `${what}, planned`;
+        const label =
+          d.status === 'done'
+            ? `${doneKind}, done`
+            : d.status === 'missed' || d.status === 'skipped'
+              ? `${what}, ${d.status}`
+              : d.status === 'off'
+                ? 'off'
+                : `${what}, planned`;
         const mark =
           d.status === 'done' ? '✓' : d.status === 'off' ? '·' : d.kind === 'lifting' ? (d.workout ?? 'L') : d.kind === 'conditioning' ? 'C' : '·';
-        const cls = ['strip-day', d.status === 'done' ? 'done' : '', d.status === 'missed' ? 'missed' : '', d.date === props.today ? 'today' : '']
+        const cls = ['strip-day', d.status === 'done' ? 'done' : '', d.status === 'missed' || d.status === 'skipped' ? 'missed' : '', d.date === props.today ? 'today' : '']
           .filter(Boolean)
           .join(' ');
         return (
           <div role="listitem" class={cls} key={d.date} aria-label={`${weekdayShort(d.date)}: ${label}`}>
             {weekdayShort(d.date)}
             <span class="mark" aria-hidden="true">
-              {d.status === 'missed' ? '–' : mark}
+              {d.status === 'missed' || d.status === 'skipped' ? '–' : mark}
             </span>
           </div>
         );
@@ -434,11 +462,14 @@ function WeekStrip(props: { days: DayPlan[]; today: LocalDate }) {
 
 // ------------------------------------------------------------ menus
 
-function SomethingCameUp(props: { onClose: () => void }) {
+function SomethingCameUp(props: { day: DayPlan; onClose: () => void }) {
   const app = useApp();
   const { program, today } = app;
-  const [view, setView] = useState<'menu' | 'sick' | 'floor'>('menu');
+  const [view, setView] = useState<'menu' | 'sick' | 'floor' | 'noTime'>('menu');
   const close = props.onClose;
+  const { day } = props;
+  const canSkip = day.status === 'planned' && (day.kind === 'lifting' || day.kind === 'conditioning');
+  if (view === 'noTime' && canSkip) return <NoTimeToday kind={day.kind as 'lifting' | 'conditioning'} onClose={close} />;
   if (view === 'sick') {
     return (
       <Sheet title="Sick" onClose={close}>
@@ -471,6 +502,11 @@ function SomethingCameUp(props: { onClose: () => void }) {
   return (
     <Sheet title="Something came up" onClose={close}>
       <div class="stack">
+        {canSkip && (
+          <button type="button" class="btn btn-ghost" onClick={() => setView('noTime')}>
+            No time today
+          </button>
+        )}
         <button type="button" class="btn btn-ghost" onClick={() => setView('sick')}>
           I'm sick
         </button>
@@ -489,6 +525,54 @@ function SomethingCameUp(props: { onClose: () => void }) {
         </button>
         <button type="button" class="btn-quiet" onClick={close}>
           Cancel
+        </button>
+      </div>
+    </Sheet>
+  );
+}
+
+/**
+ * "No time today" (RULES.md section 1, Q22). For lifting, it shows how the
+ * rest of the week moves before he confirms.
+ */
+function NoTimeToday(props: { kind: 'lifting' | 'conditioning'; onClose: () => void }) {
+  const app = useApp();
+  const { today, input } = app;
+  const after = useMemo(() => {
+    if (props.kind !== 'lifting') return [];
+    const probe: AnyEvent = { id: 'no-time-probe', type: 'skip', date: today, kind: 'lifting', reason: 'time', createdAt: '', updatedAt: '' };
+    return weekSummary({ ...input, events: [...input.events, probe] }, weekStart(today)).days.filter(
+      (d) => d.date > today && (d.kind === 'lifting' || d.kind === 'conditioning'),
+    );
+  }, [props.kind, today, input]);
+  const skip = () => {
+    void app.log({ type: 'skip', date: today, kind: props.kind, reason: 'time' });
+    props.onClose();
+  };
+  return (
+    <Sheet title="No time today?" onClose={props.onClose}>
+      {props.kind === 'conditioning' ? (
+        <p>Even 20 easy minutes counts as today's session. A skipped conditioning session isn't made up, and the rest of the week stays as it is.</p>
+      ) : after.length > 0 ? (
+        <>
+          <p>Nothing is lost. Today's session moves to tomorrow, and the rest of the week moves a day with it:</p>
+          <ul class="lines">
+            {after.map((d) => (
+              <li key={d.date}>
+                {weekdayShort(d.date)}: {d.kind === 'lifting' ? `Workout ${d.workout ?? ''}`.trim() : 'Conditioning'}
+              </li>
+            ))}
+          </ul>
+        </>
+      ) : (
+        <p>Sunday stays off, so this session isn't made up. The next lifting session picks up where you left off.</p>
+      )}
+      <div class="btn-row">
+        <button type="button" class="btn btn-ghost" onClick={props.onClose}>
+          Cancel
+        </button>
+        <button type="button" class="btn btn-primary" onClick={skip}>
+          {props.kind === 'lifting' && after.length > 0 ? 'Move it' : 'Skip it'}
         </button>
       </div>
     </Sheet>

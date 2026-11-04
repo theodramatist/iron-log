@@ -146,6 +146,16 @@ describe('§8 Conditioning', () => {
     expect(early.day('2026-11-19')).toMatchObject({ kind: 'off', conditioning: null });
   });
 
+  it("T103 Intervals stay Thursday's after a move", () => {
+    const log = buildLog().condWeek('2026-11-02').condWeek('2026-11-09').ack('2026-11-16').cond('2026-11-17');
+    expect(log.cplan('2026-11-19')).toMatchObject({ conditioningWeek: 3, phase: 2, intervals: 6 });
+    log.skip('2026-11-18', 'lifting');
+    expect(log.day('2026-11-19', '2026-11-18').kind).toBe('lifting');
+    const friday = log.day('2026-11-20', '2026-11-18');
+    expect(friday.kind).toBe('conditioning');
+    expect(friday.conditioning).toMatchObject({ conditioningWeek: 3, intervals: 0, layout: null });
+  });
+
   it('Q5 Short sessions still add to the weekly bar', () => {
     const log = buildLog().cond('2026-11-10', { minutes: 15 }).cond('2026-11-12', { minutes: 25 });
     expect(log.week('2026-11-09', '2026-11-13')).toMatchObject({ conditioningMinutes: 40, conditioningDone: 1 });

@@ -19,6 +19,7 @@ export const EVENT_TYPES = [
   'painCleared',
   'suggestionDismissed',
   'override',
+  'skip',
 ] as const satisfies readonly EventType[];
 
 // Fails to compile if an event type is added to the engine without being listed here.
@@ -122,6 +123,8 @@ function payloadOk(e: Obj): boolean {
       return isStr(e.suggestion);
     case 'override':
       return LIFTS.includes(e.lift as string) && isStr(e.field) && isNum(e.value);
+    case 'skip':
+      return (e.kind === 'lifting' || e.kind === 'conditioning') && e.reason === 'time';
   }
 }
 

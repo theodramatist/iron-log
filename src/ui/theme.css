@@ -1001,6 +1001,28 @@ p {
   align-items: center;
 }
 
+.add-plate {
+  margin-top: 16px;
+}
+
+.add-plate p {
+  margin: 0;
+}
+
+.add-plate .row {
+  margin-top: 8px;
+}
+
+.add-plate .row input {
+  flex: 1;
+  min-width: 0;
+}
+
+.add-plate .row .chip {
+  flex: 0 0 auto;
+  padding: 10px 20px;
+}
+
 /* ------------------------------------------------------------ flash */
 
 .flash {

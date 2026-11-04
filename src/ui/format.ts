@@ -36,6 +36,11 @@ export function weekdayShort(date: LocalDate): string {
   return DAYS[parts(date).wd]!.slice(0, 3);
 }
 
+/** "Monday" */
+export function weekdayLong(date: LocalDate): string {
+  return DAYS[parts(date).wd]!;
+}
+
 /** 210 -> "3:30" */
 export function clock(totalSec: number): string {
   const s = Math.max(0, Math.round(totalSec));

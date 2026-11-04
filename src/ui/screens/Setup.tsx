@@ -166,15 +166,7 @@ export function Setup() {
           </div>
           <div class="field">
             <span class="label">Plate pairs</span>
-            <div class="plate-grid">
-              {plates.map((p, i) => (
-                <PlateRow
-                  key={p.lb}
-                  plate={p}
-                  onChange={(pairs) => setPlates(plates.map((q, j) => (j === i ? { ...q, pairs } : q)))}
-                />
-              ))}
-            </div>
+            <PlatePairsEditor plates={plates} onChange={setPlates} />
           </div>
           <Question text="Can the assist machine move in 5-lb steps?">
             <p class="small muted">A 5-lb stack, or a half-step magnet on a 10-lb stack.</p>
@@ -282,7 +274,64 @@ function RestoreFromBackup() {
   );
 }
 
-export function PlateRow(props: { plate: PlatePair; onChange: (pairs: number | null) => void }) {
+// Sizes offered as one-tap adds: change plates and the common odd sizes.
+const ADDABLE_PLATES = [35, 15, 1, 0.75, 0.25];
+
+/** Every plate size with its pairs, plus a way to add sizes the list doesn't have. */
+export function PlatePairsEditor(props: { plates: PlatePair[]; onChange: (plates: PlatePair[]) => void }) {
+  const { plates } = props;
+  const [other, setOther] = useState('');
+  const have = new Set(plates.map((p) => p.lb));
+  const add = (size: number) => props.onChange([...plates, { lb: size, pairs: 1 }].sort((a, b) => b.lb - a.lb));
+  const otherLb = Number(other.trim().replace(',', '.'));
+  const otherOk =
+    other.trim() !== '' && Number.isFinite(otherLb) && otherLb > 0 && otherLb <= 100 && Math.abs(otherLb * 100 - Math.round(otherLb * 100)) < 1e-6 && !have.has(otherLb);
+  const quick = ADDABLE_PLATES.filter((size) => !have.has(size));
+  return (
+    <>
+      <div class="plate-grid">
+        {plates.map((p, i) => (
+          <PlateRow key={p.lb} plate={p} onChange={(pairs) => props.onChange(plates.map((q, j) => (j === i ? { ...q, pairs } : q)))} />
+        ))}
+      </div>
+      <div class="add-plate">
+        <p class="small muted">Other plates, such as fractional plates? Add each size, then set its pairs.</p>
+        {quick.length > 0 && (
+          <div class="chips tight" role="group" aria-label="Add a plate size">
+            {quick.map((size) => (
+              <button type="button" class="chip" key={size} aria-label={`Add ${formatLb(size)}-lb plates`} onClick={() => add(size)}>
+                + {formatLb(size)}
+              </button>
+            ))}
+          </div>
+        )}
+        <div class="row">
+          <input
+            class="num"
+            inputMode="decimal"
+            aria-label="Another plate size, in pounds"
+            placeholder="Another size, lb"
+            value={other}
+            onInput={(e) => setOther(e.currentTarget.value)}
+          />
+          <button
+            type="button"
+            class="chip"
+            disabled={!otherOk}
+            onClick={() => {
+              add(otherLb);
+              setOther('');
+            }}
+          >
+            Add
+          </button>
+        </div>
+      </div>
+    </>
+  );
+}
+
+function PlateRow(props: { plate: PlatePair; onChange: (pairs: number | null) => void }) {
   const { plate } = props;
   const unlimited = plate.pairs === null;
   return (

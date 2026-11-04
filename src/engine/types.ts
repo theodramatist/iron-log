@@ -252,6 +252,13 @@ export interface OverrideEvent extends BaseEvent {
   reason: string;
 }
 
+/** "No time today" (RULES.md section 1, Q22): the day's planned session, skipped for lack of time. */
+export interface SkipEvent extends BaseEvent {
+  type: 'skip';
+  kind: 'lifting' | 'conditioning';
+  reason: 'time';
+}
+
 export type AnyEvent =
   | SetupEvent
   | LiftingSessionEvent
@@ -265,7 +272,8 @@ export type AnyEvent =
   | IllnessEvent
   | PainClearedEvent
   | SuggestionDismissedEvent
-  | OverrideEvent;
+  | OverrideEvent
+  | SkipEvent;
 
 export type EventType = AnyEvent['type'];
 

@@ -39,6 +39,7 @@ import {
   newConditioningDraft,
   pause,
   positionAt,
+  restart,
   resume,
   start,
   timeline,
@@ -204,5 +205,17 @@ describe('Session drafts', () => {
     d = finish(d, plan, PROGRAM, at(45));
     expect(d).toMatchObject({ actualMinutes: 30, intervalsDone: 6 });
     expect(toConditioningEvent(plan, d)).toMatchObject({ intervalsPlanned: 6, intervalsDone: 6, actualMinutes: 30, targetMinutes: 30 });
+  });
+
+  it('restarting the conditioning timer goes back to zero on the Start screen', () => {
+    let d: ConditioningDraft = { ...newConditioningDraft('2026-11-03', false), shortNight: false, targetMinutes: 25 };
+    d = start(d, T0);
+    d = pause(d, at(3));
+    expect(elapsedSec(d, at(4))).toBe(3 * 60);
+    d = restart(d);
+    expect(d).toMatchObject({ step: 'setup', startedAt: null, pausedAt: null, pausedSec: 0, targetMinutes: 25 });
+    expect(elapsedSec(d, at(10))).toBe(0);
+    d = start(d, at(10)); // the real start, seven minutes later
+    expect(elapsedSec(d, at(12))).toBe(2 * 60);
   });
 });

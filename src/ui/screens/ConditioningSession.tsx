@@ -5,7 +5,7 @@ import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { planFor, type ConditioningPlan } from '../../engine';
 import { alertNow } from '../alerts';
 import { nowIso } from '../clock';
-import { Question, Stepper, YesNo } from '../components';
+import { Confirm, Question, Stepper, YesNo } from '../components';
 import { clock } from '../format';
 import { useNow } from '../hooks';
 import {
@@ -14,6 +14,7 @@ import {
   finish,
   pause,
   positionAt,
+  restart,
   resume,
   start,
   timeline,
@@ -256,6 +257,7 @@ function RunningView(props: {
   const { plan, d, update, segs, pos, elapsed } = props;
   const seg = pos.segment;
   const paused = d.pausedAt !== null;
+  const [confirmRestart, setConfirmRestart] = useState(false);
   return (
     <>
       {seg && (
@@ -297,6 +299,21 @@ function RunningView(props: {
           Finish
         </button>
       </div>
+      <button type="button" class="btn-quiet" onClick={() => setConfirmRestart(true)}>
+        Restart timer
+      </button>
+      {confirmRestart && (
+        <Confirm
+          title="Restart the timer?"
+          message="It goes back to zero and waits for you to tap Start. The time so far doesn't count."
+          confirm="Restart"
+          onCancel={() => setConfirmRestart(false)}
+          onConfirm={() => {
+            setConfirmRestart(false);
+            update(restart(d));
+          }}
+        />
+      )}
     </>
   );
 }

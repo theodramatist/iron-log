@@ -65,6 +65,14 @@ export interface EngineState {
   overloadPending: boolean;
   suggestions: Suggestion[];
   flat: { askPending: boolean; halveNext: boolean };
+  /** "No time today" skips, in log order (section 1). */
+  skips: SkipRecord[];
+}
+
+export interface SkipRecord {
+  id: string;
+  date: LocalDate;
+  kind: 'lifting' | 'conditioning';
 }
 
 export function defaultSettings(program: Program): Settings {
@@ -142,6 +150,7 @@ export function initialState(program: Program, settings: Settings): EngineState 
     overloadPending: false,
     suggestions: [],
     flat: { askPending: false, halveNext: false },
+    skips: [],
   };
 }
 

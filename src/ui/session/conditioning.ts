@@ -129,6 +129,11 @@ export function start(d: ConditioningDraft, now: IsoTimestamp): ConditioningDraf
   return { ...d, step: 'running', startedAt: d.startedAt ?? now, pausedAt: null };
 }
 
+/** Back to the Start screen at zero, for a timer started by mistake. The target and intervals he chose stay. */
+export function restart(d: ConditioningDraft): ConditioningDraft {
+  return { ...d, step: 'setup', startedAt: null, pausedAt: null, pausedSec: 0, actualMinutes: null, intervalsDone: null };
+}
+
 export function pause(d: ConditioningDraft, now: IsoTimestamp): ConditioningDraft {
   return d.pausedAt ? d : { ...d, pausedAt: now };
 }
