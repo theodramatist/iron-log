@@ -14,7 +14,7 @@ A scenario that can't pass as written is a bug in this file or in RULES.md, not 
 
 **T04 · Swap today (§1).** Given 11-06 A completed and 11-09 skipped. When Tuesday 11-10 is swapped to lifting. Then it is Workout B with normal progression (`daysAway` 4), Tuesday's conditioning is dropped rather than moved, and starting a lifting session on Wednesday 11-11 shows the two-days-in-a-row confirmation.
 
-**T05 · Weekly caps (§1).** Given 3 lifting sessions completed in a calendar week. Then no lifting session is offered for the rest of that week, including by swap. Given 2 conditioning sessions completed, no more conditioning is offered that week. Saturday and Sunday show "Off," unless "No time today" moved a session to Saturday (T97).
+**T05 · Weekly caps (§1).** Given 3 lifting sessions completed in a calendar week. Then no lifting session is offered for the rest of that week, including by swap. Given 2 conditioning sessions completed, no more conditioning is offered that week. Saturday and Sunday show "Off," unless "No time today" moved a session to the weekend (T97, T104).
 
 **T06 · Workout B's third slot (§2).** Then B on 11-04 (program week 1) and 11-13 (week 2) has the deadlift. B on 11-18 (week 3) has the row, the default `pullChoice`, starting with row calibration. With `pullChoice` set to power clean, 11-18 starts power-clean calibration instead.
 
@@ -246,7 +246,9 @@ Unless a scenario gives a date, assume program week 10 or later and no maintenan
 
 **T99 · No time for conditioning (§1).** Given 11-02 A. When Tuesday 11-03's conditioning is skipped. Then Tuesday shows skipped, Wednesday 11-04 is still lifting, Thursday 11-05 is still conditioning, and Saturday 11-07 stays off.
 
-**T100 · Sunday stays off (§1).** Given 11-02 A and Tuesday's conditioning done. When Wednesday 11-04 is skipped, and then Thursday 11-05, now lifting, is skipped too. Then Friday 11-06 is lifting, Saturday 11-07 is conditioning, and Sunday 11-08 is off, so the week's third lifting session drops.
+**T100 · Two moves fill the weekend (§1).** Given 11-02 A and Tuesday's conditioning done. When Wednesday 11-04 is skipped, and then Thursday 11-05, now lifting, is skipped too. Then Friday 11-06 is lifting, Saturday 11-07 is conditioning, and Sunday 11-08 is lifting.
+
+**T104 · Saturday or Sunday (§1).** Given 11-02 A, 11-04 B, both conditioning sessions done, and Friday 11-06 skipped, so Saturday 11-07 is lifting. When Saturday is skipped too. Then Sunday 11-08 is lifting, Workout A, and once he lifts Sunday, Monday 11-09 asks before a second lifting day in a row. When Sunday is skipped as well, the session drops, and Monday is lifting, Workout A, with no question.
 
 **T101 · Time after all (§1).** Given Wednesday 11-04 skipped. When a lifting session is logged on Wednesday anyway. Then Wednesday is done, Thursday 11-05 is conditioning, and Saturday 11-07 is off.
 

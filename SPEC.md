@@ -82,7 +82,7 @@ Six short steps, each one screen, with Back and Next:
 
 - Header: the date, program week, and conditioning phase.
 - **Session card:** today's plan. Lifting shows the workout letter and each lift with its work weight and sets ("Squat 3×5 · 115"). Conditioning shows target minutes and intervals. A floor or light week says so. Off days say "Off."
-- **Buttons:** Start session, Swap today, and a small "Something came up" menu (no time today, declare illness, overloaded week, or floor week). "No time today" shows how the rest of the week moves before it's confirmed, and a skipped day offers Undo (RULES.md section 1). In sick mode the session card shows the rest message from RULES.md section 10 and an "I'm better" button, and nothing can be started.
+- **Buttons:** Start session, Swap today, and a small "Something came up" menu (no time today, declare illness, overloaded week, or floor week). "No time today" shows how the rest of the week moves before it's confirmed, and a skipped day offers Undo (RULES.md section 1). A Saturday holding a moved lifting session also offers "Move it to Sunday." In sick mode the session card shows the rest message from RULES.md section 10 and an "I'm better" button, and nothing can be started.
 - **Banners,** at most two visible, in priority order: pain check, light-week suggestion, food-lever question, graduation, early-stall note, maintenance break, export reminder.
 - **Week strip:** Monday through Friday with done, planned, missed, and off states.
 - **Conditioning bar:** minutes this week against 150.

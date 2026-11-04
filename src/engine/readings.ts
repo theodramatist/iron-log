@@ -66,7 +66,7 @@ export const READINGS = {
   /** Q21 (sections 10 and 12): a pain return inside a light or floor week takes that week's sets at the return weight. */
   PAIN_RETURN_TAKES_WEEK_SETS: true,
 
-  /** Q22 (sections 1, 6, and 8; T97 to T103): "No time today" moves a skipped lifting session, and the rest of its week, a day later, through Saturday. */
+  /** Q22 (sections 1, 6, and 8; T97 to T104): "No time today" moves a skipped lifting session, and the rest of its week, a day later, through Sunday. */
   NO_TIME_SKIP_MOVES_WEEK: true,
 
   /** Q18 (section 14): time projection estimates, in seconds. */

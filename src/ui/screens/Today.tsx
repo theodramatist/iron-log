@@ -100,6 +100,13 @@ export function Today(props: { onStart: (route: SessionRoute) => void }) {
 
       <SessionCard day={day} week={week} onUndo={() => day.skipId && void repo.remove(day.skipId)} />
 
+      {weekdayIndex(today) === 5 && day.kind === 'lifting' && day.status === 'planned' && (
+        <div class="btn-row">
+          <button type="button" class="btn btn-ghost" onClick={() => void app.log({ type: 'skip', date: today, kind: 'lifting', reason: 'time' })}>
+            Move it to Sunday
+          </button>
+        </div>
+      )}
       <div class="btn-row">
         {day.kind !== 'sick' && !doneToday && day.swapTo && (
           <button type="button" class="btn btn-ghost" onClick={() => tryStart(day.swapTo!)}>
@@ -119,7 +126,7 @@ export function Today(props: { onStart: (route: SessionRoute) => void }) {
       )}
 
       <h2>This week</h2>
-      <WeekStrip days={week.days.filter((d, i) => i < 5 || (i === 5 && (d.kind !== 'off' || d.status === 'done')))} today={today} />
+      <WeekStrip days={week.days.filter((d, i) => i < 5 || d.kind !== 'off' || d.status === 'done')} today={today} />
       <div class="card">
         <div class="spread">
           <span class="small muted">Conditioning this week</span>
@@ -230,6 +237,7 @@ function SessionCard(props: { day: DayPlan; week: WeekSummary; onUndo: () => voi
   const done = day.status === 'done';
   const skipped = day.status === 'skipped';
   const movedTo = props.week.days.find((d) => d.date > day.date && d.kind === 'lifting' && d.status === 'planned');
+  const restMoved = movedTo !== undefined && props.week.days.some((d) => d.date > movedTo.date && d.status === 'planned');
   return (
     <section class={done ? 'card done' : 'card'} aria-label="Today's session">
       <div class="spread">
@@ -247,8 +255,8 @@ function SessionCard(props: { day: DayPlan; week: WeekSummary; onUndo: () => voi
             {day.kind === 'conditioning'
               ? "This conditioning session isn't made up."
               : movedTo
-                ? `The session moved to ${weekdayLong(movedTo.date)}, and the rest of the week moved with it.`
-                : "Sunday stays off, so this session isn't made up. The next one picks up where you left off."}
+                ? `The session moved to ${weekdayLong(movedTo.date)}${restMoved ? ', and the rest of the week moved with it' : ''}.`
+                : "The week ends today, so this session isn't made up. The next one picks up where you left off."}
           </p>
           <div class="btn-row">
             <button type="button" class="chip" onClick={props.onUndo}>
@@ -563,9 +571,12 @@ function NoTimeToday(props: { kind: 'lifting' | 'conditioning'; onClose: () => v
               </li>
             ))}
           </ul>
+          {after.some((d) => weekdayIndex(d.date) === 5 && d.kind === 'lifting') && (
+            <p class="small muted">If Saturday doesn't work, tap "Move it to Sunday" that morning.</p>
+          )}
         </>
       ) : (
-        <p>Sunday stays off, so this session isn't made up. The next lifting session picks up where you left off.</p>
+        <p>The week ends today, so this session isn't made up. The next lifting session picks up where you left off.</p>
       )}
       <div class="btn-row">
         <button type="button" class="btn btn-ghost" onClick={props.onClose}>

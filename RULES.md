@@ -19,13 +19,13 @@ The engine is a pure function. Given the program constants, the settings, and th
 
 ## 1. Scheduling
 
-- **Default week.** Lifting Monday, Wednesday, and Friday. Conditioning Tuesday and Thursday. Saturday and Sunday are off, and no sessions are offered, except a session that "No time today" moves to Saturday (below).
+- **Default week.** Lifting Monday, Wednesday, and Friday. Conditioning Tuesday and Thursday. Saturday and Sunday are off, and no sessions are offered, except a session that "No time today" moves to the weekend (below).
 - **Swap today.** On any weekday the user can do the other kind of session instead. This is how a missed lifting day moves to the next weekday, and the conditioning it displaces is dropped, not moved.
 - **Alternation.** The next workout is the opposite of the most recent completed lifting session. The first completed session was A on 2026-11-02. Light-week and floor-week sessions count. Alternation follows completed sessions, not the calendar, so a missed or moved day never breaks it.
 - **Rest day.** Lifting the day after a lifting session needs a confirmation: "Lifting two days in a row cuts recovery. Lift anyway?" **[app rule]**
 - **Caps.** At most 3 lifting sessions and 2 conditioning sessions in a calendar week (floor weeks: 2 lifting, 0 conditioning). The app never offers more and never suggests a session to make up for missed training or for food.
 - **Missed sessions** are skipped, not owed. The next lifting session gets the prescription the missed one would have had. Section 11 covers longer gaps.
-- **No time today [app rule].** On the day of a planned session, he can tap "No time today." A skipped lifting session moves to the next day, and the rest of that week's sessions move with it, a day each. Saturday takes a session only this way. Sunday stays off, so a session pushed past Saturday drops, as a missed one does. A skipped conditioning session drops and moves nothing. Caps, alternation, and the rest-day confirmation work as usual. A session logged on the skipped day cancels the skip, and a day that simply passes moves nothing.
+- **No time today [app rule].** On the day of a planned session, he can tap "No time today." A skipped lifting session moves to the next day, and the rest of that week's sessions move with it, a day each. Saturday and Sunday take sessions only this way: a session moved to Saturday can move on to Sunday the same way, and one pushed past Sunday drops, as a missed one does. A skipped conditioning session drops and moves nothing. Caps, alternation, and the rest-day confirmation work as usual. A session logged on the skipped day cancels the skip, and a day that simply passes moves nothing.
 - **Calendar notes.** `program.json → calendarNotes` (Thanksgiving, New Year's Day, Ash Wednesday) show on the Week screen as heads-ups. They change nothing by themselves.
 
 ## 2. What goes in a lifting session
@@ -157,7 +157,7 @@ GRADUATED
 
 - **Switching on.** Each switches on for good (until that lift graduates or restarts after a long layoff) the second time in a row that a made heavy session of that lift gets a suggested jump of 5 lb or less. A made heavy session with a bigger suggested jump starts the count over. Misses and repeats don't change the count.
 - **Repeats [app rule].** A repeat is any session that ran a weight the lift had already reached: the REPEAT stage, bridge normal sets, a hold retry, a layoff or after-light-week repeat, or a repeat he chose. Only made heavy sessions that took a progression step (stage `NORMAL` and a weight above `lcw`) change the count.
-- **Light squat day.** Once on, the squat is light in the second lifting session of a calendar week whenever a third lifting session can still follow it that week (a day at least two days later: Friday at the latest, or Saturday once "No time today" has moved that week's sessions **[app rule]**). In a normal week that is Wednesday. The light squat is 2×5 at `percentWeight(most recent heavy squat weight, 0.80)`, with no effort rating, no progression, and no ladder effect.
+- **Light squat day.** Once on, the squat is light in the second lifting session of a calendar week whenever a third lifting session can still follow it that week (a day at least two days later: Friday at the latest, or Sunday once "No time today" has moved that week's sessions **[app rule]**). In a normal week that is Wednesday. The light squat is 2×5 at `percentWeight(most recent heavy squat weight, 0.80)`, with no effort rating, no progression, and no ladder effect.
 - **Once-a-week deadlift.** It can't switch on before program week 3. If its count reaches two earlier, it switches on at the start of week 3. Once on, a Workout A runs the heavy deadlift only if no heavy deadlift has been done yet that calendar week. Otherwise slot 3 runs `pullChoice`. Workout B keeps its usual slot 3.
 - Neither applies in light weeks, which have their own loads (section 10).
 
