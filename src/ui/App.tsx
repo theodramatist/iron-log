@@ -8,10 +8,13 @@ import type { LocalDate, Program } from '../engine';
 import programJson from '../program/program.json';
 import { FlashHost } from './components';
 import { ConditioningSession } from './screens/ConditioningSession';
-import { Later } from './screens/Later';
+import { Lifts } from './screens/Lifts';
 import { LiftingSession } from './screens/lifting/LiftingSession';
+import { Progress } from './screens/Progress';
+import { Settings } from './screens/Settings';
 import { Setup } from './screens/Setup';
 import { Today } from './screens/Today';
+import { Week } from './screens/Week';
 import { CONDITIONING_DRAFT_VERSION, type ConditioningDraft } from './session/conditioning';
 import { LIFTING_DRAFT_VERSION, type LiftingDraft } from './session/lifting';
 import { AppProvider, useApp } from './store';
@@ -99,6 +102,10 @@ function Shell() {
   const [tab, setTab] = useState<Tab>('today');
   const [session, setSession] = useState<SessionRoute | null>(null);
   const setUp = repo.events().some((e) => e.type === 'setup');
+  // After Erase all data, the app starts over at setup; it then opens on Today.
+  useEffect(() => {
+    if (!setUp) setTab('today');
+  }, [setUp]);
 
   // A draft survives the app being closed (SPEC.md section 3): reopen it.
   useEffect(() => {
@@ -133,7 +140,11 @@ function Shell() {
     <>
       <div aria-hidden={session ? 'true' : undefined}>
         <StorageWarning />
-        {tab === 'today' ? <Today onStart={setSession} /> : <Later tab={tab} />}
+        {tab === 'today' && <Today onStart={setSession} />}
+        {tab === 'week' && <Week />}
+        {tab === 'progress' && <Progress />}
+        {tab === 'lifts' && <Lifts />}
+        {tab === 'settings' && <Settings />}
         <nav class="tabbar" aria-label="Tabs">
           {TABS.map((t) => (
             <button type="button" key={t.id} aria-current={tab === t.id ? 'page' : undefined} onClick={() => setTab(t.id)}>

@@ -42,8 +42,10 @@ export { buildSetupEvents, type SetupAnswers } from './setup';
 export { sortEvents } from './replay';
 export {
   assistStates,
+  bodyweightHistory,
   conditioningState,
   effectiveSettings,
+  floorWeeks,
   jumpChoices,
   liftStates,
   nextLiftingDate,
@@ -52,6 +54,7 @@ export {
   programState,
   triggers,
   weekSummary,
+  type FloorWeekView,
   type LiftStateView,
   type PrescribeOptions,
   type ProgramStateView,

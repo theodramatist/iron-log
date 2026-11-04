@@ -2,7 +2,7 @@
 
 import { sickOn } from './calendar';
 import { conditioningPlan } from './conditioning';
-import { programWeek } from './dates';
+import { programWeek, weekStart } from './dates';
 import { findNextLiftingDate, planForDate, summarizeWeek } from './plan';
 import type { ConditioningPlan, DayPlan, SessionPlan, WeekSummary } from './planTypes';
 import { inventoryFrom, loadableBetween } from './plates';
@@ -103,6 +103,33 @@ export function jumpChoices(input: EngineInput, lift: BarbellLiftId): number[] {
 
 export function effectiveSettings(input: EngineInput, date?: LocalDate): Settings {
   return replay(input, date ?? input.today).settings;
+}
+
+export interface FloorWeekView {
+  weekStart: LocalDate;
+  /** The preloaded name, such as "Christmas week", or null for one he added. */
+  label: string | null;
+  scheduled: boolean;
+}
+
+/** Floor weeks as of today: the preloaded ones he hasn't removed, plus any he added or declared (RULES.md section 10). */
+export function floorWeeks(input: EngineInput): FloorWeekView[] {
+  const st = replay(input, input.today);
+  const out = new Map<LocalDate, FloorWeekView>();
+  for (const f of input.program.deload.scheduledFloorWeeks) {
+    const ws = weekStart(f.start);
+    out.set(ws, { weekStart: ws, label: f.label, scheduled: true });
+  }
+  for (const [ws, on] of st.floorOverrides) {
+    if (!on) out.delete(ws);
+    else if (!out.has(ws)) out.set(ws, { weekStart: ws, label: null, scheduled: false });
+  }
+  return [...out.values()].sort((a, b) => (a.weekStart < b.weekStart ? -1 : 1));
+}
+
+/** Every weigh-in, setup's included, oldest first. */
+export function bodyweightHistory(input: EngineInput): { date: LocalDate; lb: number }[] {
+  return [...replay(input, input.today).bodyweights].sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
 }
 
 export function programState(input: EngineInput): ProgramStateView {

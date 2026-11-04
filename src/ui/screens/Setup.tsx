@@ -2,7 +2,7 @@
 // then the 2026-11-02 session and the setup answers go into the log.
 
 import { useState } from 'preact/hooks';
-import { requestPersistentStorage } from '../../data';
+import { localDate, requestPersistentStorage, type BackupFile } from '../../data';
 import {
   buildSetupEvents,
   formatLb,
@@ -13,8 +13,9 @@ import {
   type TableRating,
 } from '../../engine';
 import { nowIso } from '../clock';
-import { Choice, Question, YesNo } from '../components';
-import { longDate } from '../format';
+import { readBackupFile } from '../backups';
+import { Choice, Confirm, Question, YesNo } from '../components';
+import { longDate, shortDate } from '../format';
 import { useApp } from '../store';
 
 type Monday = { squat: TableRating | null; press: TableRating | null; deadlift: TableRating | null };
@@ -91,6 +92,7 @@ export function Setup() {
             Iron Log runs the {program.meta.programName}: it tells you what to lift each day, records what you did, and works out the next
             session. Everything stays on this phone.
           </p>
+          <RestoreFromBackup />
         </>
       )}
 
@@ -236,7 +238,51 @@ export function Setup() {
   );
 }
 
-function PlateRow(props: { plate: PlatePair; onChange: (pairs: number | null) => void }) {
+/** A new phone, or after Erase all data: start from a backup instead of setup (SPEC.md section 8). */
+function RestoreFromBackup() {
+  const { repo } = useApp();
+  const [pending, setPending] = useState<BackupFile | null>(null);
+  const [problem, setProblem] = useState<string | null>(null);
+  return (
+    <div class="question">
+      <label class="btn-quiet" style={{ display: 'inline-block', cursor: 'pointer' }}>
+        Restore from a backup instead
+        <input
+          type="file"
+          accept=".json,application/json"
+          class="sr-only"
+          onChange={(e) => {
+            const file = e.currentTarget.files?.[0];
+            e.currentTarget.value = '';
+            if (!file) return;
+            setProblem(null);
+            void readBackupFile(file).then((r) => (r.ok ? setPending(r.file) : setProblem(r.error)));
+          }}
+        />
+      </label>
+      {problem && (
+        <p class="note alarm" role="alert">
+          {problem}
+        </p>
+      )}
+      {pending && (
+        <Confirm
+          title="Restore this backup?"
+          message={`It was exported ${shortDate(localDate(new Date(pending.exportedAt)))} and has ${pending.events.length} entries.`}
+          confirm="Restore"
+          onCancel={() => setPending(null)}
+          onConfirm={() => {
+            const file = pending;
+            setPending(null);
+            repo.restore(file).catch((e: unknown) => setProblem(`The backup didn't load${e instanceof Error ? ` (${e.message})` : ''}.`));
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+export function PlateRow(props: { plate: PlatePair; onChange: (pairs: number | null) => void }) {
   const { plate } = props;
   const unlimited = plate.pairs === null;
   return (

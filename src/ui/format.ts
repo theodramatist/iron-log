@@ -23,6 +23,14 @@ export function shortDate(date: LocalDate): string {
   return `${DAYS[p.wd]!.slice(0, 3)}, ${MONTHS[p.m - 1]!.slice(0, 3)} ${p.d}`;
 }
 
+/** "Nov 2 to 8", or "Nov 30 to Dec 6" across a month. */
+export function weekRange(monday: LocalDate, sunday: LocalDate): string {
+  const a = parts(monday);
+  const b = parts(sunday);
+  const month = (m: number) => MONTHS[m - 1]!.slice(0, 3);
+  return a.m === b.m ? `${month(a.m)} ${a.d} to ${b.d}` : `${month(a.m)} ${a.d} to ${month(b.m)} ${b.d}`;
+}
+
 /** "Mon" */
 export function weekdayShort(date: LocalDate): string {
   return DAYS[parts(date).wd]!.slice(0, 3);

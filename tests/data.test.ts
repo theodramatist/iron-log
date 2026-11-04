@@ -213,3 +213,20 @@ describe('Data: the event store, drafts, and backups', () => {
     expect(await requestPersistentStorage()).toBe('denied');
   });
 });
+
+describe('The backup reminder (SPEC.md section 8)', () => {
+  const friday = (date: string): AnyEvent =>
+    ({ id: date, type: 'conditioningSession', date, createdAt: '', updatedAt: '', stopped: false }) as unknown as AnyEvent;
+
+  it('shows after Friday\'s session when there has been no export in 7 days', async () => {
+    const { backupReminderDue } = await import('../src/ui/backups');
+    const events = [friday('2026-11-06')];
+    expect(backupReminderDue(events, '2026-11-05', null)).toBe(false); // Thursday: Friday hasn't come
+    expect(backupReminderDue(events, '2026-11-06', null)).toBe(true); // never exported
+    expect(backupReminderDue(events, '2026-11-06', '2026-10-30')).toBe(true); // 7 days ago
+    expect(backupReminderDue(events, '2026-11-06', '2026-11-02')).toBe(false); // 4 days ago
+    expect(backupReminderDue(events, '2026-11-08', null)).toBe(true); // still up on Sunday
+    expect(backupReminderDue(events, '2026-11-13', null)).toBe(false); // that Friday is a week old
+    expect(backupReminderDue([friday('2026-11-05')], '2026-11-06', null)).toBe(false); // a Thursday session
+  });
+});

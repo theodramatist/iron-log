@@ -1,6 +1,6 @@
 // RULES.md section 17: edge cases.
 import { describe, expect, it } from 'vitest';
-import { buildSetupEvents, nextLiftingDate, prescribe, programState, type LiftingSessionEvent } from '../src/engine';
+import { bodyweightHistory, buildSetupEvents, nextLiftingDate, prescribe, programState, type LiftingSessionEvent } from '../src/engine';
 import { PROGRAM, buildLog, made, madeAt, missed, missedAt } from './helpers/log';
 
 describe('§17 Edge cases', () => {
@@ -84,5 +84,14 @@ describe('§17 Edge cases', () => {
     expect(graduationNotes()).toHaveLength(0);
     log.lift('2027-03-01');
     expect(log.liftPlan('2027-03-05', 'press')).toMatchObject({ kind: 'heavy', weight: 92.5 });
+  });
+
+  it('keeps every weigh-in for Progress', () => {
+    const log = buildLog().bodyweight('2026-11-09', 268).bodyweight('2026-11-05', 269.5);
+    expect(bodyweightHistory(log.input('2026-11-10'))).toEqual([
+      { date: '2026-11-03', lb: 270 },
+      { date: '2026-11-05', lb: 269.5 },
+      { date: '2026-11-09', lb: 268 },
+    ]);
   });
 });

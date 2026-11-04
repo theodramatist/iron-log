@@ -15,7 +15,9 @@ import {
   type Program,
   type WeekSummary,
 } from '../../engine';
+import { localDate } from '../../data';
 import { unlockAudio } from '../alerts';
+import { backupReminderDue, exportBackup } from '../backups';
 import { nowIso } from '../clock';
 import { Choice, Confirm, Sheet, YesNo } from '../components';
 import { longDate, shortDate, weekdayShort } from '../format';
@@ -80,7 +82,8 @@ export function Today(props: { onStart: (route: SessionRoute) => void }) {
       <h1>{longDate(today)}</h1>
 
       {stoppedToday && <div class="note alarm">{program.safety.stopSessionMessage}</div>}
-      <Banners banners={day.banners} />
+      <Banners banners={day.banners.slice(0, 2)} />
+      {day.banners.length < 2 && <BackupReminder />}
 
       <SessionCard day={day} />
 
@@ -362,6 +365,32 @@ function BannerView(props: { banner: Banner }) {
     default:
       return <div class="note info">{b.message}</div>;
   }
+}
+
+/** "Back up your log" after Friday's session, if there's been no export in 7 days (SPEC.md section 8). */
+function BackupReminder() {
+  const { repo, today } = useApp();
+  const [problem, setProblem] = useState<string | null>(null);
+  const last = repo.meta().lastExportAt;
+  if (!backupReminderDue(repo.events(), today, last ? localDate(new Date(last)) : null)) return null;
+  return (
+    <div class="note">
+      <div>Back up your log. Save the file to Files or iCloud Drive.</div>
+      {problem && <div class="small">{problem}</div>}
+      <div class="btn-row">
+        <button
+          type="button"
+          class="chip"
+          onClick={() => {
+            setProblem(null);
+            exportBackup(repo, today).catch((e: unknown) => setProblem(`The backup didn't save${e instanceof Error ? ` (${e.message})` : ''}.`));
+          }}
+        >
+          Export
+        </button>
+      </div>
+    </div>
+  );
 }
 
 // ------------------------------------------------------------ week strip

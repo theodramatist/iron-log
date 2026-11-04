@@ -1,6 +1,6 @@
 // RULES.md section 10: deloads, illness, and floor weeks.
 import { describe, expect, it } from 'vitest';
-import type { SessionPlan } from '../src/engine';
+import { floorWeeks, type SessionPlan } from '../src/engine';
 import { PROGRAM, buildLog, made, madeAt, missed, missedAt, type Log } from './helpers/log';
 
 const lightWeekSuggested = (log: Log) => log.suggestions().some((s) => s.kind === 'lightWeek');
@@ -240,5 +240,13 @@ describe('§10 Deloads, illness, and floor weeks', () => {
       ['2026-11-04', 'planned'],
     ]);
     expect(days[4]).toMatchObject({ date: '2026-11-06', kind: 'off', projected: true });
+  });
+
+  it('lists floor weeks as Settings shows them', () => {
+    const log = buildLog().floorWeek('2026-11-10', 'removed', '2027-03-22').floorWeek('2026-11-10', 'added', '2027-02-08');
+    expect(floorWeeks(log.input('2026-11-10'))).toEqual([
+      { weekStart: '2026-12-21', label: 'Christmas week', scheduled: true },
+      { weekStart: '2027-02-08', label: null, scheduled: false },
+    ]);
   });
 });
