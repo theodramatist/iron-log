@@ -94,7 +94,7 @@ Six short steps, each one screen, with Back and Next:
 - **Start check-ins:** the three questions from RULES.md section 10, plus "Flat from the intervals?" when it applies, and the pain question for any paused lift.
 - **Session menu:** Equipment down (assist machine, SkiErg, or air bike), which swaps in the substitutes from RULES.md sections 2 and 8.
 - **Checklist row:** 5 easy minutes on the air bike.
-- **One card per lift,** in slot order. Each card shows the lift, work weight, set scheme, plates per side, the stage when it isn't `NORMAL` ("Bridge: 5×3 at 250"), and cues.
+- **One card per lift,** in slot order. Each card shows the lift, work weight, set scheme, plates per side, the stage when it isn't `NORMAL` ("Bridge: 5×3 at 250"), and cues. The cues say how the sets run, from PROTOCOL.md's Supersets and trisets: barbell work sets are straight, with full rest and nothing in between; squat and deadlift rests are never shortened; and each lift's warm-ups start after the last lift's work sets, not in their rests.
   - Warm-up rows with weights, reps, and plates. Tap to check off.
   - Work-set rows as large buttons. One tap logs the set as made. A minus button lowers the reps for a short set. A small toggle marks "form broke." A long press marks the set skipped.
   - After the last work set, effort chips appear (Light, 3–4 left, 1–2 left, Grind). If any set came up short, the rating is set to Missed and the chips are hidden. Cleans and rows show Crisp and Not crisp.
@@ -102,7 +102,8 @@ Six short steps, each one screen, with Back and Next:
   - A "Use a smaller jump next time" control in the post-session summary, never on the card.
 - **Calibration cards** replace normal cards the first time bench, rows, cleans, or dips appear. They add sets one at a time. Bench, rows, and cleans offer "Fast," "Starting to slow," and "Clearly slowed" (or "Bar speed dropped") after each set, and dips end with "5 solid with 2 or 3 to spare."
 - **Returning lifts.** A lift back from a pain stop shows "Return session at 90%" and its lighter weight. In a 22-to-60-day layoff return, each lift asks "Did that warm-up feel heavy?" after its last warm-up set and adjusts the work sets on yes.
-- **Chin-and-dip block:** six rows alternating chin and dip, each showing assistance (or belt weight) and effective load, with a reps stepper defaulting to the target. After the last set, chips ask for spare reps (0, 1, 2+). Negatives appear as two checkboxes when due.
+- **Rest timer:** after each work set, with ±30 seconds, Skip, and "Reps left on that set" chips that reset the rest (RULES.md section 14).
+- **Chin-and-dip block:** a superset, labeled as one: six rows alternating chin and dip, each showing assistance (or belt weight) and effective load, with a reps stepper defaulting to the target. After the last set, chips ask for spare reps (0, 1, 2+). Negatives appear as two checkboxes when due.
 - **Rest timer:** a bar that starts when a work set is logged, with the RULES.md section 14 default, plus and minus 30 seconds, and Skip. It sounds and flashes the screen when time is up.
 - **Time guard:** when the projection passes 80 minutes, a banner shows the next cut step.
 - **Finish:** the end check-in ("Did warm-ups feel heavy today?"), then a summary listing each lift's next prescription and any stage change, the food line, and any new suggestion.

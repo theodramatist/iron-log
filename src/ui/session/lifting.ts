@@ -4,9 +4,11 @@
 // plan. Pure: no DOM and no clock. Timestamps come in as arguments.
 
 import {
+  READINGS,
   dipCalibrationNext,
   prescribe,
   rampResult,
+  restDefaultSec,
   type AssistLiftId,
   type AssistMovementLog,
   type AssistMovementPlan,
@@ -21,6 +23,7 @@ import {
   type LiftPlan,
   type LiftingSessionEvent,
   type LocalDate,
+  type Program,
   type SessionPlan,
   type SessionProgress,
   type SpareReps,
@@ -77,6 +80,10 @@ export interface AssistCalibrationDraft {
 
 export interface TimerDraft extends TimerState {
   label: string;
+  /** The barbell lift whose work set started this rest, so "Reps left on that set" can reset it (Q23). */
+  lift?: BarbellLiftId;
+  /** The answer to "Reps left on that set," once given. */
+  effort?: EffortRating;
 }
 
 export type CheckInId = 'lastNightUnder6' | 'mostNightsUnder7' | 'jointPain' | 'flatFromIntervals';
@@ -421,9 +428,34 @@ export function setSubstitutionReps(d: LiftingDraft, exercise: string, sets: num
 
 // ------------------------------------------------------------ rest timer
 
-export function startTimer(d: LiftingDraft, label: string, durationSec: number, now: IsoTimestamp): LiftingDraft {
+export function startTimer(d: LiftingDraft, label: string, durationSec: number, now: IsoTimestamp, lift?: BarbellLiftId): LiftingDraft {
   if (d.past) return d;
-  return { ...d, timer: { startedAt: now, durationSec, adjustSec: 0, label } };
+  return { ...d, timer: { startedAt: now, durationSec, adjustSec: 0, label, ...(lift ? { lift } : {}) } };
+}
+
+/** The rest after a work set that came up short or broke form: the missed row of the table (RULES.md section 14, Q23). */
+export function missedRestSec(lp: LiftPlan, program: Program): number {
+  return READINGS.REST_FROM_SET_JUST_DONE ? restDefaultSec('missed', { shortSets: lp.shortSets }, program) : lp.restSec;
+}
+
+/**
+ * "Reps left on that set" on the rest timer (Q23): this rest comes from the
+ * section 14 table, measured from when the set was logged. After the lift's
+ * last work set, an empty effort rating takes the same answer.
+ */
+export function rateRest(d: LiftingDraft, lp: LiftPlan, effort: EffortRating, program: Program): LiftingDraft {
+  if (!d.timer || d.timer.lift !== lp.lift) return d;
+  const durationSec = restDefaultSec(effort, { shortSets: lp.shortSets }, program);
+  let next: LiftingDraft = { ...d, timer: { ...d.timer, durationSec, adjustSec: 0, effort } };
+  const l = liftDraft(next, lp);
+  if (l.effort === null && wantsRating(lp, l)) next = setEffort(next, lp, effort);
+  return next;
+}
+
+/** A set that turns into a miss while its rest runs (a lower rep count or "form broke"): that rest becomes the missed rest. */
+export function restAfterMiss(d: LiftingDraft, lp: LiftPlan, program: Program): LiftingDraft {
+  if (!d.timer || d.timer.lift !== lp.lift || !READINGS.REST_FROM_SET_JUST_DONE) return d;
+  return { ...d, timer: { ...d.timer, durationSec: Math.max(d.timer.durationSec, missedRestSec(lp, program)), adjustSec: 0 } };
 }
 
 export function adjustTimer(d: LiftingDraft, deltaSec: number): LiftingDraft {

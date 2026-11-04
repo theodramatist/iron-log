@@ -25,10 +25,10 @@ import {
   type LiftingDraft,
 } from '../../session/lifting';
 import { useApp } from '../../store';
-import { EffortChips, SetButton } from './LiftCard';
+import { AfterCue, EffortChips, SetButton } from './LiftCard';
 import type { Update } from './shared';
 
-export function CalibrationCard(props: { lp: LiftPlan; d: LiftingDraft; update: Update; inv: Inventory }) {
+export function CalibrationCard(props: { lp: LiftPlan; d: LiftingDraft; update: Update; inv: Inventory; prevLabel?: string }) {
   const { program } = useApp();
   const { lp, d, update, inv } = props;
   const [menu, setMenu] = useState(false);
@@ -41,7 +41,7 @@ export function CalibrationCard(props: { lp: LiftPlan; d: LiftingDraft; update: 
   const tap = (i: number) => {
     const wasDone = l.sets[i]?.state === 'done';
     let next = tapSet(d, lp, i);
-    if (!wasDone) next = startTimer(next, lp.label, lp.restSec, nowIso());
+    if (!wasDone) next = startTimer(next, lp.label, lp.restSec, nowIso(), lp.lift);
     update(next);
   };
   return (
@@ -98,6 +98,7 @@ export function CalibrationCard(props: { lp: LiftPlan; d: LiftingDraft; update: 
                 <Stepper label="Reps" value={reps} min={0} max={cal.repsPerSet} onChange={(v) => update(lowerRampReps(d, lp, v - reps))} />
               </div>
               <PlateBar weight={current} plates={platesPerSide(current, inv) ?? []} />
+              {l.ramp.length === 0 && <AfterCue prevLabel={props.prevLabel} />}
               <p class="small muted">
                 Sets of {cal.repsPerSet}. After each set, tap how the bar moved.
               </p>
@@ -108,7 +109,7 @@ export function CalibrationCard(props: { lp: LiftPlan; d: LiftingDraft; update: 
                 <button type="button" class="chip" disabled={reps < cal.repsPerSet} onClick={() => update(rampVerdict(d, lp, 'slowing'))}>
                   {slowing}
                 </button>
-                <button type="button" class="chip" onClick={() => update(startTimer(rampVerdict(d, lp, 'slowed'), lp.label, lp.restSec, nowIso()))}>
+                <button type="button" class="chip" onClick={() => update(startTimer(rampVerdict(d, lp, 'slowed'), lp.label, lp.restSec, nowIso(), lp.lift))}>
                   {slowed}
                 </button>
               </div>

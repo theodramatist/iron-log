@@ -22,7 +22,9 @@ import {
   liftDraft,
   liftMissed,
   lowerReps,
+  missedRestSec,
   ratesCrisp,
+  restAfterMiss,
   setEffort,
   setWorkWeight,
   startTimer,
@@ -76,13 +78,20 @@ function liftHeader(lp: LiftPlan, weight: number, kind: string | null) {
   );
 }
 
-export function WarmupRows(props: { lp: LiftPlan; d: LiftingDraft; update: Update; cut: boolean }) {
+/** PROTOCOL.md, Supersets and trisets: barbell work sets run straight, so a lift's warm-ups wait for the last lift's work sets. */
+export function AfterCue(props: { prevLabel?: string }) {
+  if (!props.prevLabel) return null;
+  return <p class="small muted">Start these after the last {props.prevLabel.toLowerCase()} work set, not during its rests.</p>;
+}
+
+export function WarmupRows(props: { lp: LiftPlan; d: LiftingDraft; update: Update; cut: boolean; prevLabel?: string }) {
   const { lp, d, update } = props;
   const l = liftDraft(d, lp);
   if (lp.warmups.length === 0) return null;
   return (
     <div style={{ marginTop: '8px' }}>
       <div class="card-kicker">Warm-ups</div>
+      <AfterCue prevLabel={props.prevLabel} />
       {lp.warmups.map((w, i) => (
         <button type="button" class="check-row" key={i} aria-pressed={l.warmups[i] ?? false} onClick={() => update(toggleWarmup(d, lp, i))}>
           <span class="box" aria-hidden="true">
@@ -98,7 +107,21 @@ export function WarmupRows(props: { lp: LiftPlan; d: LiftingDraft; update: Updat
   );
 }
 
-export function LiftCard(props: { lp: LiftPlan; d: LiftingDraft; update: Update; inv: Inventory }) {
+/**
+ * How the work sets run (PROTOCOL.md, Supersets and trisets): straight, with
+ * full rest. Squat and deadlift rests are never shortened, and only the
+ * long-day cut puts chin sets between press or bench sets.
+ */
+function straightSetsCue(lp: LiftPlan, cutsApplied: number): string | null {
+  if (lp.sets < 2) return null;
+  if (cutsApplied >= 3 && (lp.lift === 'press' || lp.lift === 'bench')) {
+    return `Today, do a chin set in each rest, keeping at least 3 minutes between ${lp.label.toLowerCase()} sets. Dips come after the last one.`;
+  }
+  const base = 'Straight sets: full rest between work sets, with nothing in between.';
+  return lp.lift === 'squat' || lp.lift === 'deadlift' ? `${base} Never shorten these rests.` : base;
+}
+
+export function LiftCard(props: { lp: LiftPlan; d: LiftingDraft; update: Update; inv: Inventory; prevLabel?: string }) {
   const { program } = useApp();
   const { lp, d, update, inv } = props;
   const l = liftDraft(d, lp);
@@ -112,15 +135,20 @@ export function LiftCard(props: { lp: LiftPlan; d: LiftingDraft; update: Update;
   const tap = (i: number) => {
     const wasDone = l.sets[i]?.state === 'done';
     let next = tapSet(d, lp, i);
-    if (!wasDone) next = startTimer(next, lp.label, lp.restSec, nowIso());
+    if (!wasDone) next = startTimer(next, lp.label, lp.restSec, nowIso(), lp.lift);
     update(next);
   };
+  // A short set rests like a miss (RULES.md section 14, Q23).
   const minus = (i: number) => {
     const wasDone = l.sets[i]?.state === 'done';
-    let next = lowerReps(d, lp, i);
-    if (!wasDone) next = startTimer(next, lp.label, lp.restSec, nowIso());
-    update(next);
+    const next = lowerReps(d, lp, i);
+    update(wasDone ? restAfterMiss(next, lp, program) : startTimer(next, lp.label, missedRestSec(lp, program), nowIso(), lp.lift));
   };
+  const formBroke = (i: number) => {
+    const next = toggleFormBroke(d, lp, i);
+    update(liftDraft(next, lp).sets[i]?.formBroke ? restAfterMiss(next, lp, program) : next);
+  };
+  const setsCue = straightSetsCue(lp, d.cutsApplied);
 
   return (
     <section class="card" aria-label={lp.label}>
@@ -147,7 +175,7 @@ export function LiftCard(props: { lp: LiftPlan; d: LiftingDraft; update: Update;
         <p class="note alarm">Pain stop: this lift ends for today and won't count. The next session with it asks if the pain is gone.</p>
       ) : (
         <>
-          <WarmupRows lp={lp} d={d} update={update} cut={d.cutsApplied >= 2} />
+          <WarmupRows lp={lp} d={d} update={update} cut={d.cutsApplied >= 2} prevLabel={props.prevLabel} />
           {askLayoff && (
             <Question text="Did that warm-up feel heavy?">
               <YesNo label="Did that warm-up feel heavy?" value={l.layoffHeavy} onChange={(v) => update(answerLayoffHeavy(d, lp, v))} />
@@ -157,9 +185,10 @@ export function LiftCard(props: { lp: LiftPlan; d: LiftingDraft; update: Update;
           <div class="card-kicker" style={{ marginTop: '12px' }}>
             Work sets
           </div>
+          {setsCue && <p class="small muted">{setsCue}</p>}
           <div class="sets">
             {l.sets.map((s, i) => (
-              <SetButton key={i} n={i + 1} target={lp.reps} s={s} onTap={() => tap(i)} onMinus={() => minus(i)} onForm={() => update(toggleFormBroke(d, lp, i))} onSkip={() => update(toggleSkipped(d, lp, i))} />
+              <SetButton key={i} n={i + 1} target={lp.reps} s={s} onTap={() => tap(i)} onMinus={() => minus(i)} onForm={() => formBroke(i)} onSkip={() => update(toggleSkipped(d, lp, i))} />
             ))}
           </div>
           <p class="small muted">Tap a set when it's done. Hold a set to mark it skipped.</p>

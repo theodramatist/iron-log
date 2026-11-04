@@ -93,8 +93,13 @@ export function AssistBlock(props: { plan: SessionPlan; d: LiftingDraft; update:
     <section class="card" aria-label="Chins and dips">
       <div class="card-title">{movements.length === 2 ? 'Chins and dips' : movements[0]?.label}</div>
       <p class="cue">
-        {a.rounds} rounds, {Math.round(a.restSec / 15) * 15} seconds between sets.
+        {movements.length === 2
+          ? `Superset: a chin set, then a dip set, ${Math.round(a.restSec / 15) * 15} seconds between sets, ${a.rounds} rounds.`
+          : `${a.rounds} sets, ${Math.round(a.restSec / 15) * 15} seconds between sets.`}
       </p>
+      {d.cutsApplied >= 3 && a.chin && (
+        <p class="cue">Today the chin sets go in the rests between {(plan.lifts.find((l) => l.lift === 'press' || l.lift === 'bench')?.label ?? 'press').toLowerCase()} sets, and the dips come after the last one.</p>
+      )}
       {movements[0]?.cues.map((c) => (
         <p class="cue" key={c}>
           {c}

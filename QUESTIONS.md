@@ -8,7 +8,7 @@ None.
 
 ## Answered
 
-The owner accepted every recommendation on 2026-11-03: keep 16 readings as they were, and change Q8 and Q13. Q19 came up while building the screens, and Q20 and Q21 came from the M3 audit (`docs/AUDIT-M3.md`). All three were answered the same day. Q22 is a feature the owner asked for after launch, on 2026-11-04.
+The owner accepted every recommendation on 2026-11-03: keep 16 readings as they were, and change Q8 and Q13. Q19 came up while building the screens, and Q20 and Q21 came from the M3 audit (`docs/AUDIT-M3.md`). All three were answered the same day. Q22 and Q23 are features the owner asked for after launch, on 2026-11-04.
 
 | # | Question | RULES.md | Decision |
 | --- | --- | --- | --- |
@@ -34,3 +34,4 @@ The owner accepted every recommendation on 2026-11-03: keep 16 readings as they 
 | Q20 | A first calibration that falls in a light or floor week | §9, §10 | Keep: the bench, row, or clean sits out that week with a note and calibrates at its first session of a normal week. Chin and dip calibrations go ahead. |
 | Q21 | A pain return that falls in a light or floor week | §10, §12 | Keep: the return takes the week's sets at 90% (2×5, 1×5 for the deadlift, 3×3 for cleans) and still counts as the return. |
 | Q22 | Skipping a session for lack of time | §1, §6, §8 | **New, at the owner's request:** "No time today" moves a skipped lifting session to the next day and the rest of the week with it. Saturday takes the overflow, and skipping Saturday too moves it to Sunday, as the owner added the same day. A skipped conditioning session just drops. Intervals stay Thursday's (Q8), and the light squat day can look ahead to a moved weekend session (T97–T104). |
+| Q23 | A rest timer that lags a session behind | §14 | **New, at the owner's request:** the timer asks how many reps were left on the set just logged and resets that rest from the §14 table, so a set that turns hard gets 3:30 or 5:00 at once instead of next session. A short set starts the missed rest. After the last work set, the answer fills in an empty effort rating. It changes rest only. |
