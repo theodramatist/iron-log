@@ -39,6 +39,19 @@ describe('§6 Light squat day and once-a-week deadlift', () => {
     expect(log.liftPlan('2026-11-20', 'squat').kind).toBe('heavy');
   });
 
+  it('T102 Light squat day after a move', () => {
+    const monday = () => lightDayOn().lift('2026-11-09', { squat: madeAt(200, 'rir1to2') }).cond('2026-11-10');
+    const log = monday().skip('2026-11-11', 'lifting');
+    expect(log.day('2026-11-12', '2026-11-12').kind).toBe('lifting');
+    expect(log.liftPlan('2026-11-12', 'squat')).toMatchObject({ kind: 'lightDay', weight: 160, sets: 2, reps: 5 });
+    log.lift('2026-11-12', { squat: made() });
+    expect(log.day('2026-11-14', '2026-11-14').kind).toBe('lifting');
+    expect(log.liftPlan('2026-11-14', 'squat').kind).toBe('heavy');
+
+    // Wednesday simply missed and Thursday swapped to lifting: nothing can follow by Friday, so it's heavy.
+    expect(monday().liftPlan('2026-11-12', 'squat').kind).toBe('heavy');
+  });
+
   it('T36 Light-day weight', () => {
     const log = lightDayOn().lift('2026-11-09', { squat: madeAt(247.5, 'rir1to2') });
     expect(log.liftPlan('2026-11-11', 'squat')).toMatchObject({ kind: 'lightDay', weight: 197.5 });

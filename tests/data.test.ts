@@ -44,7 +44,8 @@ function sampleLog() {
     .cond('2026-11-05', { minutes: 22 })
     .lift('2026-11-06', { squat: made('rir1to2'), press: made('rir1to2'), deadlift: made('rir1to2'), chin: cd.made(2) })
     .bodyweight('2026-11-07', 268)
-    .declare('2026-11-09', 'light');
+    .declare('2026-11-09', 'light')
+    .skip('2026-11-10', 'conditioning');
 }
 
 async function repoWith(events: AnyEvent[], adapter = memoryAdapter()) {
@@ -129,6 +130,9 @@ describe('Data: the event store, drafts, and backups', () => {
     const lifting = (f: Record<string, unknown>) =>
       (f.events as AnyEvent[]).find((e): e is LiftingSessionEvent => e.type === 'liftingSession')!;
     expect(bad((f) => ((lifting(f) as unknown as { lifts: unknown }).lifts = 'squat'))).toMatchObject({ ok: false });
+    const skip = (f: Record<string, unknown>) => (f.events as AnyEvent[]).find((e) => e.type === 'skip') as unknown as Record<string, unknown>;
+    expect(bad((f) => (skip(f).reason = 'tired'))).toMatchObject({ ok: false });
+    expect(bad((f) => (skip(f).kind = 'rest'))).toMatchObject({ ok: false });
     expect(bad((f) => (lifting(f).lifts[0]!.sets = [{ weight: '95', reps: 5 }] as never))).toMatchObject({ ok: false });
     expect(bad((f) => (f.events = (f.events as AnyEvent[]).filter((e) => e.type !== 'setup')))).toMatchObject({
       ok: false,

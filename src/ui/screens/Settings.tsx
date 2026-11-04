@@ -18,7 +18,7 @@ import { exportBackup, readBackupFile } from '../backups';
 import { Choice, Confirm, Question, Sheet, YesNo } from '../components';
 import { lb, shortDate } from '../format';
 import { useApp } from '../store';
-import { PlateRow } from './Setup';
+import { PlatePairsEditor } from './Setup';
 
 export function Settings() {
   const app = useApp();
@@ -218,11 +218,7 @@ function PlatesSheet(props: { barLb: number; plates: PlatePair[]; onClose: () =>
       </div>
       <div class="field">
         <span class="label">Plate pairs</span>
-        <div class="plate-grid">
-          {plates.map((p, i) => (
-            <PlateRow key={p.lb} plate={p} onChange={(pairs) => setPlates(plates.map((q, j) => (j === i ? { ...q, pairs } : q)))} />
-          ))}
-        </div>
+        <PlatePairsEditor plates={plates} onChange={setPlates} />
       </div>
       <p class="small muted">Weights from here on round to what these plates can make.</p>
       <div class="btn-row">

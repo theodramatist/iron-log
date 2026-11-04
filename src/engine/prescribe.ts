@@ -29,6 +29,7 @@ import {
 } from './programAccess';
 import { READINGS } from './readings';
 import { applyMissedTraining, applyOwnGap, lastSession } from './replay';
+import { lastSessionDay } from './schedule';
 import { cloneAssist, cloneLifts, latestBodyweight, type EngineState } from './state';
 import { projectedSessionMin, restDefaultSec } from './time';
 import type {
@@ -114,14 +115,14 @@ export function slotLifts(
   ];
 }
 
-/** Section 6: the week's second session is light when a third can still follow it, by Friday. */
+/** Section 6: the week's second session is light when a third can still follow it, by Friday, or by Saturday once a skip has moved the week. */
 export function isLightSquatDay(st: EngineState, s: LiftState, date: LocalDate): boolean {
   if (weekTypeOn(st, date) !== 'normal') return false;
   if (!s.smallJumpReachedOn || date <= s.smallJumpReachedOn || s.stage === 'GRADUATED') return false;
   const ws = weekStart(date);
   const done = st.sessions.filter((r) => weekStart(r.date) === ws && r.date <= date).length;
   if (done !== 1) return false;
-  return addDays(date, 2) <= addDays(ws, 4) && done + 1 < st.program.schedule.maxLiftingSessionsPerWeek;
+  return addDays(date, 2) <= lastSessionDay(st, date) && done + 1 < st.program.schedule.maxLiftingSessionsPerWeek;
 }
 
 /** The heavy prescription from the lift's stage, then the after-light-week repeat and the short night. */

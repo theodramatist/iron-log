@@ -157,7 +157,7 @@ export interface ConditioningPlan {
 }
 
 export type DayKind = 'lifting' | 'conditioning' | 'off' | 'sick';
-export type DayStatus = 'planned' | 'done' | 'missed' | 'off';
+export type DayStatus = 'planned' | 'done' | 'missed' | 'off' | 'skipped';
 
 export interface Banner {
   kind: SuggestionKind;
@@ -174,6 +174,8 @@ export interface DayPlan {
   status: DayStatus;
   /** What "Swap today" would start instead, or null when no swap is available. */
   swapTo: 'lifting' | 'conditioning' | null;
+  /** On a day skipped with "No time today," the skip, so it can be undone (section 1). */
+  skipId: string | null;
   needsConsecutiveConfirm: boolean;
   workout: Workout | null;
   /** "Squat 3×5 · 115" lines. */

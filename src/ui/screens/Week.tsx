@@ -65,6 +65,7 @@ export function Week() {
 
 function statusText(d: DayPlan, today: LocalDate): string {
   if (d.status === 'done') return 'Done';
+  if (d.status === 'skipped') return 'Skipped';
   if (d.kind === 'sick') return 'Sick';
   if (d.kind === 'off') return 'Off';
   if (d.status === 'missed') return 'Missed';
@@ -74,7 +75,7 @@ function statusText(d: DayPlan, today: LocalDate): string {
 function DayCard(props: { day: DayPlan; today: LocalDate; stopped: LoggedSession[]; onOpen: (id: string) => void }) {
   const { day: d, today } = props;
   const logged: LoggedSession[] = [...d.loggedLifting, ...d.loggedConditioning, ...props.stopped];
-  const planned = d.status !== 'done' && (d.kind === 'lifting' || d.kind === 'conditioning');
+  const planned = d.status !== 'done' && d.status !== 'skipped' && (d.kind === 'lifting' || d.kind === 'conditioning');
   return (
     <section class={d.date === today ? 'card day today' : 'card day'} aria-label={shortDate(d.date)}>
       <div class="spread">

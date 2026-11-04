@@ -309,6 +309,12 @@ export class Log {
     return this;
   }
 
+  /** "No time today" (RULES.md section 1). */
+  skip(date: LocalDate, kind: 'lifting' | 'conditioning'): this {
+    this.events.push({ ...this.stamp(), type: 'skip', date, kind, reason: 'time' });
+    return this;
+  }
+
   dismiss(date: LocalDate, suggestion: SuggestionKind, lift?: BarbellLiftId | AssistLiftId): this {
     this.events.push({ ...this.stamp(), type: 'suggestionDismissed', date, suggestion, lift });
     return this;

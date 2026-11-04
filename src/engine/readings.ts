@@ -1,7 +1,8 @@
 // Readings of RULES.md where it was ambiguous (CLAUDE.md, ground rule 1).
-// The owner decided Q1 through Q21 on 2026-11-03. Each decision is an
-// [app rule] in the RULES.md section named, and its number matches QUESTIONS.md.
-// New questions get a constant here and an entry there.
+// The owner decided Q1 through Q21 on 2026-11-03 and asked for Q22 on
+// 2026-11-04. Each decision is an [app rule] in the RULES.md section named,
+// and its number matches QUESTIONS.md. New questions get a constant here and
+// an entry there.
 
 export const READINGS = {
   /** Q1 (section 5, T29): a failure after the food lever's extra round still checks the maintenance-break hold first. */
@@ -64,6 +65,9 @@ export const READINGS = {
 
   /** Q21 (sections 10 and 12): a pain return inside a light or floor week takes that week's sets at the return weight. */
   PAIN_RETURN_TAKES_WEEK_SETS: true,
+
+  /** Q22 (sections 1, 6, and 8; T97 to T103): "No time today" moves a skipped lifting session, and the rest of its week, a day later, through Saturday. */
+  NO_TIME_SKIP_MOVES_WEEK: true,
 
   /** Q18 (section 14): time projection estimates, in seconds. */
   BIKE_WARMUP_SEC: 300,

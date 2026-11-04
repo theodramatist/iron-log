@@ -59,6 +59,7 @@ Every event has `id`, `type`, `date` (local date), `createdAt`, and `updatedAt`.
 | `painCleared` | lift, how (`gone` or `clinician`) |
 | `suggestionDismissed` | suggestion kind |
 | `override` | lift, field, value, reason |
+| `skip` | kind (`lifting` or `conditioning`), reason (`time`): "No time today" (RULES.md section 1) |
 
 Export format: `{ "app": "iron-log", "schemaVersion": 1, "programVersion": "2026-11-02", "exportedAt": "...", "settings": {...}, "events": [...] }`. Import validates the shape and the schema version, shows a count of events, and replaces all data only after a confirmation.
 
@@ -73,7 +74,7 @@ Six short steps, each one screen, with Back and Next:
 1. Welcome, with one sentence on what the app does and that data stays on the phone.
 2. Monday, November 2: the seeded session, prefilled. For squat, press, and deadlift, ask "How did the last work set feel?" with the four effort chips. For chins, ask "Reps to spare on the last set?" (0, 1, or 2+).
 3. Age bracket: under 40, or 40 and over.
-4. Equipment: bar weight, plate pairs (defaults from `program.json`), and whether the assist machine allows 5-lb and 2.5-lb steps.
+4. Equipment: bar weight, plate pairs (defaults from `program.json`, plus any other sizes he owns, such as fractional plates), and whether the assist machine allows 5-lb and 2.5-lb steps.
 5. Third pull from week 3: row (default) or power clean, with the protocol's note that cleans are only for someone who already cleans well.
 6. Bodyweight and the screening note (`program.json → safety.screeningNote`), acknowledged with one tap, then Finish. Finish requests persistent storage (section 7).
 
@@ -81,7 +82,7 @@ Six short steps, each one screen, with Back and Next:
 
 - Header: the date, program week, and conditioning phase.
 - **Session card:** today's plan. Lifting shows the workout letter and each lift with its work weight and sets ("Squat 3×5 · 115"). Conditioning shows target minutes and intervals. A floor or light week says so. Off days say "Off."
-- **Buttons:** Start session, Swap today, and a small "Something came up" menu (declare illness, overloaded week, or floor week). In sick mode the session card shows the rest message from RULES.md section 10 and an "I'm better" button, and nothing can be started.
+- **Buttons:** Start session, Swap today, and a small "Something came up" menu (no time today, declare illness, overloaded week, or floor week). "No time today" shows how the rest of the week moves before it's confirmed, and a skipped day offers Undo (RULES.md section 1). In sick mode the session card shows the rest message from RULES.md section 10 and an "I'm better" button, and nothing can be started.
 - **Banners,** at most two visible, in priority order: pain check, light-week suggestion, food-lever question, graduation, early-stall note, maintenance break, export reminder.
 - **Week strip:** Monday through Friday with done, planned, missed, and off states.
 - **Conditioning bar:** minutes this week against 150.
@@ -109,7 +110,7 @@ Six short steps, each one screen, with Back and Next:
 ### 5.4 Conditioning session
 
 - The check-in "Last night under 6 hours?" first, then phase, conditioning week, a target-minutes stepper limited to the phase's range (down to 20 minutes when short on time, with intervals hidden under 30), and the machines.
-- A segmented timer: easy on the air bike, the interval block on the SkiErg, then easy on the air bike. A large countdown shows the current segment and what's next, with a sound and a screen flash at each change.
+- A segmented timer: easy on the air bike, the interval block on the SkiErg, then easy on the air bike. A large countdown shows the current segment and what's next, with a sound and a screen flash at each change. "Restart timer" sends a timer started by mistake back to zero on the Start screen.
 - The screening gate before the first interval session.
 - Finish: actual minutes and intervals done (prefilled), notes, then the food line.
 

@@ -9,6 +9,7 @@ import { buildSessionPlan } from './prescribe';
 import { BARBELL_LIFTS, liftNoun } from './programAccess';
 import { READINGS } from './readings';
 import { replay, replayEach } from './replay';
+import { skipOn, slotSource } from './schedule';
 import type { EngineState } from './state';
 import type { EngineInput, LocalDate, PrescriptionKind, SuggestionKind, Workout } from './types';
 
@@ -51,6 +52,7 @@ export function dayPlan(input: EngineInput, st: EngineState, date: LocalDate): D
     kind: 'off',
     status: 'off',
     swapTo: null,
+    skipId: null,
     needsConsecutiveConfirm: false,
     workout: null,
     summary: [],
@@ -96,7 +98,11 @@ export function dayPlan(input: EngineInput, st: EngineState, date: LocalDate): D
     };
   }
 
-  if (wd >= 5) return { ...base, message: 'Off.' };
+  // "No time today" (section 1): the skipped day, then the day of the default week whose session lands here.
+  const skip = skipOn(st, date);
+  if (skip) return { ...base, kind: skip.kind, status: 'skipped', skipId: skip.id, message: 'Skipped: no time.' };
+  const source = slotSource(st, date);
+  if (source === null) return { ...base, message: 'Off.' };
   if (sickOn(st, date)) return { ...base, kind: 'sick', message: program.illness.sickModeMessage };
 
   const ws = weekStart(date);
@@ -108,7 +114,7 @@ export function dayPlan(input: EngineInput, st: EngineState, date: LocalDate): D
   const yesterdayLift = st.sessions.some((r) => r.date === addDays(date, -1));
   const liftOk = liftCount < liftCap && !(floor && yesterdayLift);
   const condOk = condCount < condCap;
-  const defaultLifting = (program.schedule.liftDays as string[]).includes(weekdayName(date));
+  const defaultLifting = (program.schedule.liftDays as string[]).includes(weekdayName(source));
 
   let kind: DayPlan['kind'];
   let swapTo: DayPlan['swapTo'];
@@ -196,7 +202,7 @@ export function summarizeWeek(input: EngineInput, monday: LocalDate): WeekSummar
 function projectCaps(days: DayPlan[], today: LocalDate, liftCap: number): void {
   let left = liftCap - days.reduce((n, d) => n + d.loggedLifting.length, 0);
   for (const d of days) {
-    if (d.kind !== 'lifting' || d.status === 'done' || d.date < today) continue;
+    if (d.kind !== 'lifting' || d.status === 'done' || d.status === 'skipped' || d.date < today) continue;
     if (left > 0) {
       left -= 1;
       continue;
@@ -213,7 +219,7 @@ function projectCaps(days: DayPlan[], today: LocalDate, liftCap: number): void {
 function projectAlternation(days: DayPlan[], today: LocalDate): void {
   let next: Workout | null = null;
   for (const d of days) {
-    if (d.kind !== 'lifting' || d.status === 'done' || d.date < today || !d.workout) continue;
+    if (d.kind !== 'lifting' || d.status === 'done' || d.status === 'skipped' || d.date < today || !d.workout) continue;
     if (next === null) {
       next = d.workout;
       continue;
@@ -231,7 +237,7 @@ export function findNextLiftingDate(input: EngineInput, from: LocalDate): LocalD
   replayEach(input, dates, (st, date) => {
     if (found !== null) return;
     const p = dayPlan(input, st, date);
-    if (p.kind === 'lifting' && p.status !== 'done') found = date;
+    if (p.kind === 'lifting' && p.status !== 'done' && p.status !== 'skipped') found = date;
   });
   return found;
 }
