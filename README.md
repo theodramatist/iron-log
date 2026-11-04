@@ -13,11 +13,13 @@ An iPhone app that runs the Retraining Protocol for one lifter. It tells you wha
 | `TEST_SCENARIOS.md` | 96 worked cases the app must get right |
 | `PROTOCOL.md` | The audited Retraining Protocol, as you read it |
 | `QUESTIONS.md` | Questions from the build and how each was decided |
+| `DEPLOY.md` | The live address, how to deploy, and how to put the app on the iPhone |
 | `src/engine/` | The rules engine: pure TypeScript, tested against every scenario |
 | `src/data/` | On-phone storage, backups, and drafts |
 | `src/ui/` | The screens, and the session drafts behind them |
 | `tests/` | One test file per RULES.md section, named by scenario ID |
 | `e2e/smoke.mjs` | A browser walk through the first week, checked against the engine |
+| `.github/workflows/deploy.yml` | Tests, builds, and publishes the app to GitHub Pages on every push to `main` |
 | `docs/AUDIT.md` | The audit of the original Iron Log, which this rework replaced |
 | `docs/AUDIT-M3.md` | The audit of the rebuilt app at M3, with findings ranked by severity |
 
@@ -45,7 +47,7 @@ The milestones in `CLAUDE.md` say what comes next. After each one, read its repo
 
 ## How to install it on your iPhone
 
-Once the app is deployed, `DEPLOY.md` will give its web address.
+The app lives at https://theodramatist.github.io/iron-log/. `DEPLOY.md` has the full steps, including how to log a session from an earlier day.
 
 1. Open the address in Safari.
 2. Tap Share, then Add to Home Screen.
