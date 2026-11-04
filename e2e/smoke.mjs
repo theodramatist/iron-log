@@ -15,7 +15,7 @@ import { chromium } from 'playwright';
 import { createServer } from 'vite';
 
 const PORT = 5199;
-const BASE = `http://localhost:${PORT}/`;
+const BASE = `http://localhost:${PORT}/iron-log/`;
 
 const server = await createServer({ server: { port: PORT, strictPort: true }, logLevel: 'warn' });
 await server.listen();

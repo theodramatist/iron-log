@@ -35,7 +35,7 @@ npm test
 npm run dev
 ```
 
-In development, add `?today=2026-11-04` to the address to see any day. The smoke test clicks through the first week in a headless browser:
+The dev server serves the app at `http://localhost:5173/iron-log/`, the same path it has on GitHub Pages. In development, add `?today=2026-11-04` to that address to see any day. The smoke test clicks through the first week in a headless browser:
 
 ```bash
 npm run smoke

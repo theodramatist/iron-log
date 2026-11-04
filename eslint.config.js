@@ -51,4 +51,9 @@ export default defineConfig(
     files: ['tests/**/*.ts', 'e2e/**/*.mjs', 'vite.config.ts', 'eslint.config.js'],
     languageOptions: { globals: globals.node },
   },
+  {
+    // Imported into the service worker.
+    files: ['public/**/*.js'],
+    languageOptions: { globals: globals.serviceworker },
+  },
 );

@@ -18,6 +18,7 @@ import {
 import { localDate } from '../../data';
 import { unlockAudio } from '../alerts';
 import { backupReminderDue, exportBackup } from '../backups';
+import { useUpdateReady } from '../update';
 import { nowIso } from '../clock';
 import { Choice, Confirm, Sheet, YesNo } from '../components';
 import { longDate, shortDate, weekdayShort } from '../format';
@@ -60,6 +61,7 @@ export function Today(props: { onStart: (route: SessionRoute) => void }) {
   };
 
   const doneToday = day.status === 'done';
+  const update = useUpdateReady();
   const [another, setAnother] = useState(false);
   // The day's main action sits at the bottom, in reach of a thumb (SPEC.md section 6).
   const primary =
@@ -81,6 +83,16 @@ export function Today(props: { onStart: (route: SessionRoute) => void }) {
       </div>
       <h1>{longDate(today)}</h1>
 
+      {update && (
+        <div class="note info" role="status">
+          <div>Update ready. It takes effect the next time you open Iron Log.</div>
+          <div class="btn-row">
+            <button type="button" class="chip" onClick={update}>
+              Update now
+            </button>
+          </div>
+        </div>
+      )}
       {stoppedToday && <div class="note alarm">{program.safety.stopSessionMessage}</div>}
       <Banners banners={day.banners.slice(0, 2)} />
       {day.banners.length < 2 && <BackupReminder />}
