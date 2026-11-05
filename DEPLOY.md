@@ -17,7 +17,9 @@ Until now, GitHub Pages has published the old app straight from the files on `ma
 
 Any push to `main` deploys. To publish again without a change, open **Actions**, pick **Deploy**, and tap **Run workflow** on `main`.
 
-Phones update on their own. The next time Iron Log opens with a signal, it fetches the new version in the background, and Today shows "Update ready." The update takes effect the next time you open the app, or right away with **Update now**. It never reloads during a session.
+Phones update on their own. Whenever Iron Log opens or comes back to the screen with a signal, it checks for a new version and downloads it in the background, and Today shows "Update ready." Tap **Update now**, or the update takes effect the next time the app starts fresh. It never reloads during a session.
+
+If an update doesn't show, open **Settings**, scroll to **About**, and tap **Check for updates**. The version number is there too. Versions before 1.3.1 check only when the app starts fresh, so for those, swipe Iron Log away in the app switcher, open it again, and give Today a few seconds.
 
 To try a production build on a computer first:
 
