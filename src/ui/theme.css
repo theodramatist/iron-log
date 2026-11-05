@@ -577,7 +577,8 @@ p {
 .session-body {
   max-width: 560px;
   margin: 0 auto;
-  padding: 8px calc(var(--pad) + env(safe-area-inset-right)) calc(env(safe-area-inset-bottom) + 170px)
+  /* Room for the rest timer, its rating chips included, over the last card. */
+  padding: 8px calc(var(--pad) + env(safe-area-inset-right)) calc(env(safe-area-inset-bottom) + 240px)
     calc(var(--pad) + env(safe-area-inset-left));
 }
 
@@ -878,6 +879,43 @@ p {
   display: flex;
   gap: 8px;
   margin-top: 8px;
+}
+
+.timer-hint {
+  font-size: 0.75rem;
+  color: var(--faint);
+  margin-top: 6px;
+}
+
+.timer-rate {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.timer-rate-label {
+  font-size: 0.75rem;
+  color: var(--muted);
+  white-space: nowrap;
+  margin-right: 2px;
+}
+
+.timer-rate button {
+  flex: 1;
+  min-height: 40px;
+  border-radius: 10px;
+  border: 1px solid var(--edge);
+  background: var(--surface2);
+  color: var(--txt);
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.timer-rate button[aria-pressed='true'] {
+  background: var(--amber);
+  border-color: var(--amber);
+  color: var(--on-color);
 }
 
 .timer-actions button {

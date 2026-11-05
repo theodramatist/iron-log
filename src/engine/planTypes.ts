@@ -46,6 +46,8 @@ export interface LiftPlan {
   /** Shown when the stage isn't NORMAL, as in "Bridge: 5×3 at 250". */
   stageLabel: string | null;
   restSec: number;
+  /** Bridge short sets: their rest never drops under the floor (section 14). */
+  shortSets: boolean;
   cues: string[];
   notes: string[];
   /** 22-to-60-day return: the work weight if "Did that warm-up feel heavy?" is yes. */

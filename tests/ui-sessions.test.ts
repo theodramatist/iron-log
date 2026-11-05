@@ -27,6 +27,11 @@ import {
   toLiftingEvent,
   toggleWarmup,
   lowerReps,
+  missedRestSec,
+  rateRest,
+  restAfterMiss,
+  startTimer,
+  toggleFormBroke,
   toggleSkipped,
   togglePainStop,
   wantsRating,
@@ -217,5 +222,40 @@ describe('Session drafts', () => {
     expect(elapsedSec(d, at(10))).toBe(0);
     d = start(d, at(10)); // the real start, seven minutes later
     expect(elapsedSec(d, at(12))).toBe(2 * 60);
+  });
+
+  it('Q23 rests from the set just done, and a short set rests like a miss', () => {
+    const log = buildLog({ setup: { squat: 'rir3to4' } });
+    let d: LiftingDraft = { ...newLiftingDraft('2026-11-04', false), step: 'lifting', startedAt: T0 };
+    const squat = () => sessionPlan(log.input('2026-11-04'), d).lifts.find((l) => l.lift === 'squat') as LiftPlan;
+    expect(squat()).toMatchObject({ restSec: 150, shortSets: false });
+
+    // Set 1 felt harder than Monday's rating: 1–2 left takes 3:30, counted from when the set was logged.
+    d = startTimer(tapSet(d, squat(), 0), 'Squat', squat().restSec, T0, 'squat');
+    d = rateRest(d, squat(), 'rir1to2', PROGRAM);
+    expect(d.timer).toMatchObject({ durationSec: 210, adjustSec: 0, effort: 'rir1to2', startedAt: T0, lift: 'squat' });
+    expect(d.lifts.squat!.effort).toBeNull();
+
+    // The last set: a grind takes 5:00, and the empty rating takes the answer.
+    d = tapSet(tapSet(d, squat(), 1), squat(), 2);
+    d = rateRest(startTimer(d, 'Squat', squat().restSec, at(8), 'squat'), squat(), 'grind', PROGRAM);
+    expect(d.timer?.durationSec).toBe(300);
+    expect(d.lifts.squat!.effort).toBe('grind');
+    // A rating already set stays as he left it.
+    d = rateRest(setEffort(d, squat(), 'rir1to2'), squat(), 'light', PROGRAM);
+    expect(d.lifts.squat!.effort).toBe('rir1to2');
+    expect(d.timer?.durationSec).toBe(120);
+
+    // Another lift's rest is left alone, and bridge short sets keep their 5:00 floor.
+    const other = startTimer(d, 'Bench press', 120, at(12), 'bench');
+    expect(rateRest(other, squat(), 'grind', PROGRAM).timer).toEqual(other.timer);
+    expect(rateRest(startTimer(d, 'Squat', 300, at(12), 'squat'), { ...squat(), shortSets: true }, 'light', PROGRAM).timer?.durationSec).toBe(300);
+
+    // A short set, or one that broke form, rests 5:00.
+    expect(missedRestSec(squat(), PROGRAM)).toBe(300);
+    let e: LiftingDraft = { ...newLiftingDraft('2026-11-04', false), step: 'lifting', startedAt: T0 };
+    e = startTimer(tapSet(e, squat(), 0), 'Squat', squat().restSec, T0, 'squat');
+    expect(restAfterMiss(toggleFormBroke(e, squat(), 0), squat(), PROGRAM).timer?.durationSec).toBe(300);
+    expect(restAfterMiss(lowerReps(e, squat(), 0), squat(), PROGRAM).timer).toMatchObject({ durationSec: 300, startedAt: T0 });
   });
 });

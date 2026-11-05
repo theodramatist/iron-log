@@ -294,6 +294,7 @@ function buildLiftPlan(
     round: s.round,
     stageLabel: kind === 'heavy' || kind === 'graduated' ? stageLabel(s, weight, sets, reps) : null,
     restSec: restDefaultSec(kind === 'heavy' ? s.lastEffort : s.lastEffort ?? null, { shortSets: scheme === 'short' }, program),
+    shortSets: scheme === 'short',
     cues,
     notes,
     layoffHeavyWeight: kind === 'heavy' ? heavyWarmupWeight(s, ctx) : null,

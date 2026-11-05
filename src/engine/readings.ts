@@ -1,6 +1,6 @@
 // Readings of RULES.md where it was ambiguous (CLAUDE.md, ground rule 1).
-// The owner decided Q1 through Q21 on 2026-11-03 and asked for Q22 on
-// 2026-11-04. Each decision is an [app rule] in the RULES.md section named,
+// The owner decided Q1 through Q21 on 2026-11-03 and asked for Q22 and Q23
+// on 2026-11-04. Each decision is an [app rule] in the RULES.md section named,
 // and its number matches QUESTIONS.md. New questions get a constant here and
 // an entry there.
 
@@ -68,6 +68,9 @@ export const READINGS = {
 
   /** Q22 (sections 1, 6, and 8; T97 to T104): "No time today" moves a skipped lifting session, and the rest of its week, a day later, through Sunday. */
   NO_TIME_SKIP_MOVES_WEEK: true,
+
+  /** Q23 (section 14): the rest timer can take how many reps were left on the set just logged, and a short set starts the missed rest. */
+  REST_FROM_SET_JUST_DONE: true,
 
   /** Q18 (section 14): time projection estimates, in seconds. */
   BIKE_WARMUP_SEC: 300,

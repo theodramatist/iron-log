@@ -125,7 +125,7 @@ export function LiftingSession(props: { initial: LiftingDraft; onClose: () => vo
       </div>
 
       {!summary && d.timer && remaining !== null && (
-        <RestTimer label={d.timer.label} remaining={remaining} total={d.timer.durationSec + d.timer.adjustSec} d={d} update={update} />
+        <RestTimer plan={plan} label={d.timer.label} remaining={remaining} total={d.timer.durationSec + d.timer.adjustSec} d={d} update={update} />
       )}
 
       {sheet === 'stop' && (

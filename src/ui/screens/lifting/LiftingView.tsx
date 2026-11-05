@@ -47,11 +47,11 @@ export function LiftingView(props: { plan: SessionPlan; d: LiftingDraft; update:
         </button>
       </div>
 
-      {plan.lifts.map((lp) =>
+      {plan.lifts.map((lp, i) =>
         lp.kind === 'calibration' ? (
-          <CalibrationCard key={lp.lift} lp={lp} d={d} update={update} inv={inv} />
+          <CalibrationCard key={lp.lift} lp={lp} d={d} update={update} inv={inv} prevLabel={plan.lifts[i - 1]?.label} />
         ) : (
-          <LiftCard key={lp.lift} lp={lp} d={d} update={update} inv={inv} />
+          <LiftCard key={lp.lift} lp={lp} d={d} update={update} inv={inv} prevLabel={plan.lifts[i - 1]?.label} />
         ),
       )}
       {plan.paused.map((p) => (
