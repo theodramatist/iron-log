@@ -18,6 +18,7 @@ import { exportBackup, readBackupFile } from '../backups';
 import { Choice, Confirm, Question, Sheet, YesNo } from '../components';
 import { lb, shortDate } from '../format';
 import { useApp } from '../store';
+import { checkForUpdate, useUpdateReady, type UpdateCheck } from '../update';
 import { PlatePairsEditor } from './Setup';
 
 export function Settings() {
@@ -133,6 +134,7 @@ export function Settings() {
           <span>{program.meta.programName}</span>
           <span class="num">{program.meta.programVersion}</span>
         </div>
+        <UpdateRow />
         <p class="small muted">Everything stays on this phone. Nothing is sent anywhere.</p>
       </div>
 
@@ -419,5 +421,52 @@ function DataCard(props: { onMessage: (m: string) => void }) {
         />
       )}
     </div>
+  );
+}
+
+const CHECK_TEXT: Record<UpdateCheck, string> = {
+  found: 'Downloading the update. "Update now" shows here when it\'s ready.',
+  latest: 'This is the latest version.',
+  offline: 'No connection right now. Try again with a signal.',
+  unavailable: "This browser can't check for updates.",
+};
+
+/** A way to look for a new version by hand, since iOS can go days without checking (SPEC.md section 7). */
+function UpdateRow() {
+  const update = useUpdateReady();
+  const [result, setResult] = useState<UpdateCheck | 'checking' | null>(null);
+  if (update) {
+    return (
+      <div class="note info" role="status">
+        <div>Update ready.</div>
+        <div class="btn-row">
+          <button type="button" class="chip" onClick={update}>
+            Update now
+          </button>
+        </div>
+      </div>
+    );
+  }
+  return (
+    <>
+      <div class="btn-row">
+        <button
+          type="button"
+          class="chip"
+          disabled={result === 'checking'}
+          onClick={() => {
+            setResult('checking');
+            void checkForUpdate().then(setResult);
+          }}
+        >
+          {result === 'checking' ? 'Checking' : 'Check for updates'}
+        </button>
+      </div>
+      {result && result !== 'checking' && (
+        <p class="small muted" role="status">
+          {CHECK_TEXT[result]}
+        </p>
+      )}
+    </>
   );
 }

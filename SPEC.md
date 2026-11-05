@@ -146,7 +146,7 @@ Age bracket, bodyweight, bar and plates, assist-machine steps, `pullChoice`, spl
 ## 7. iPhone requirements and limits
 
 - **Manifest:** `name` "Iron Log", `short_name` "Iron Log", `display` "standalone", `orientation` "portrait", `start_url` and `scope` "./", theme and background colors, and 192, 512, and maskable 512 icons. Add a 180×180 `apple-touch-icon`, `apple-mobile-web-app-title`, and `viewport-fit=cover`.
-- **Offline:** the service worker precaches every asset. Every app on theodramatist.github.io shares one origin, so the worker lives at `/iron-log/sw.js` with scope `/iron-log/`. That is the old Iron Log's URL, so installed phones update to the new worker, which deletes the old `ironlog-v*` caches on activate. Use update prompting rather than auto-reload, and never reload during a session. Show "Update ready" on the Today screen, applied on the next launch.
+- **Offline:** the service worker precaches every asset. Every app on theodramatist.github.io shares one origin, so the worker lives at `/iron-log/sw.js` with scope `/iron-log/`. That is the old Iron Log's URL, so installed phones update to the new worker, which deletes the old `ironlog-v*` caches on activate. Use update prompting rather than auto-reload, and never reload during a session. Show "Update ready" on the Today screen, applied on the next launch. iOS resumes a Home Screen app without reloading it, so the app also checks for a new version whenever it comes back to the screen and hourly while open, and Settings has "Check for updates." A check downloads `sw.js` and sends nothing.
 - **Storage:** IndexedDB, in a database named `iron-log`. After setup, call `navigator.storage.persist()` and show the result in Settings. WebKit grants it by heuristics, such as whether the site is opened as a home-screen web app, and persistent origins are excluded from eviction ([WebKit, "Updates to Storage Policy," August 10, 2023](https://webkit.org/?p=14403)). Because the grant isn't guaranteed, backups are required (section 8).
 - **Screen awake:** request a Screen Wake Lock while a session screen is open, and request it again when the app returns to the foreground. It works in home-screen web apps from iOS 18.4 ([WebKit bug 254545](https://bugs.webkit.org/show_bug.cgi?id=254545)). Fail quietly where it's missing.
 - **Timers** compute remaining time from stored timestamps, never from counting ticks, because iOS suspends background pages.
@@ -172,5 +172,5 @@ Food logging, accounts, sync, multiple users, Apple Health or Apple Watch, push 
 5. A made work set takes one tap, and a normal session can be logged without typing.
 6. Export, erase, and import restore the same log, state, and plan (T81).
 7. The rest timer is right after the app is backgrounded (T77).
-8. No network requests happen after the first load.
+8. No network requests happen after the first load, apart from checking for a new version of the app, which sends nothing.
 9. Every visible label and message follows the protocol's terms and contains no exclamation points.
