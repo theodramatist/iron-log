@@ -8,7 +8,7 @@ Read RULES.md for every decision the app makes. This file covers what the app lo
 
 - **Install:** a static web app served over HTTPS and added to the home screen from Safari (Share, then Add to Home Screen). It opens full screen with no browser bar.
 - **Target:** iPhone on iOS 18.4 or later, portrait only. It should also run in desktop Safari and Chrome for development.
-- **No backend, no accounts, and no network calls after the first load.** Everything is cached for offline use, because gyms often have poor signal.
+- **No backend, no accounts, and no network calls after the first load.** Everything is cached for offline use, because gyms often have poor signal. Two exceptions, both added at the owner's request: checking for a new version of the app (section 7), and, once he sets it up, the automatic backup to his own private GitHub repository (section 8).
 
 ## 2. Architecture
 
@@ -159,6 +159,8 @@ Age bracket, bodyweight, bar and plates, assist-machine steps, `pullChoice`, spl
 - Export from Settings creates the JSON file in section 4. Use the share sheet (`navigator.share` with a file) where available, so he can save it to Files or iCloud Drive, and fall back to a download.
 - After Friday's session, if there has been no export in 7 days, the Today screen shows "Back up your log" with one-tap export.
 - Import replaces everything after a confirmation that shows the file's date and event count.
+- **One-tap backup:** a session's last screen offers "Back up now" when the last copy saved by hand is a week old, or there is none. It opens the same share sheet.
+- **Automatic backup (owner's request, 2026-11-09):** in Settings he can enter a private GitHub repository and a fine-grained token that can read and write only that repository's contents. The app checks that the repository is private, then writes the backup file to `iron-log-backup.json` there a few seconds after each change, when it comes back to the screen, and when the phone gets a signal again, skipping a log that hasn't changed. Every backup is a commit, so every version is kept. The token is kept beside the log, never in an exported file, and nothing else is sent. Settings shows the last backup or the last error, with "Back up now," "Change," and "Turn off."
 
 ## 9. Non-goals
 
@@ -173,5 +175,5 @@ Food logging, accounts, sync, multiple users, Apple Health or Apple Watch, push 
 5. A made work set takes one tap, and a normal session can be logged without typing.
 6. Export, erase, and import restore the same log, state, and plan (T81).
 7. The rest timer is right after the app is backgrounded (T77).
-8. No network requests happen after the first load, apart from checking for a new version of the app, which sends nothing.
+8. No network requests happen after the first load, apart from checking for a new version of the app, which sends nothing, and the automatic backup once he has set it up, which sends only the backup file to his own repository.
 9. Every visible label and message follows the protocol's terms and contains no exclamation points.

@@ -56,4 +56,16 @@ Any day from November 2 through yesterday can be logged this way. If you log a d
 
 ## Keeping your data safe
 
-The log lives only on the phone. In **Settings**, under **Backups**, tap **Export** now and then, and save the file to Files or iCloud Drive. Today reminds you when a backup is due. If the phone is lost or the app is removed, that file is the only copy, and **Import** brings it back.
+The log lives on the phone. Back it up two ways.
+
+**By hand, to iCloud Drive.** In **Settings**, under **Backups**, tap **Export** and save the file to Files or iCloud Drive. When your last saved copy is a week old, a session's last screen offers **Back up now**, which does the same in one tap. Today reminds you too.
+
+**Automatically, to GitHub.** Set this up once:
+
+1. On GitHub, create a **private** repository, such as `iron-log-backups`.
+2. In GitHub, open your picture, then **Settings**, then **Developer settings**, then **Personal access tokens**, then **Fine-grained tokens**, and tap **Generate new token**. Under **Repository access**, choose **Only select repositories** and pick that repository. Under **Permissions**, set **Contents** to **Read and write**. Copy the token.
+3. In Iron Log, open **Settings**, and under **Automatic backup** tap **Set up**. Enter the repository (for example `you/iron-log-backups`) and the token, then tap **Save**.
+
+The app checks that the repository is private, then saves `iron-log-backup.json` there a few seconds after each change, whenever the phone has a signal. Every backup is a commit, so the repository's history holds every version. When the token expires, Settings shows the error, and **Change** takes a new one.
+
+To restore, from either copy: on a fresh install, tap **Restore from a backup instead** on the first setup screen, or use **Import** in Settings. To get the file from GitHub, open `iron-log-backup.json` in the repository, download it, and save it to Files.

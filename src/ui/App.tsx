@@ -18,6 +18,7 @@ import { Week } from './screens/Week';
 import { CONDITIONING_DRAFT_VERSION, type ConditioningDraft } from './session/conditioning';
 import { LIFTING_DRAFT_VERSION, type LiftingDraft } from './session/lifting';
 import { AppProvider, useApp } from './store';
+import { watchAutoBackup } from './githubBackup';
 import { setUpdateBusy } from './update';
 import './theme.css';
 
@@ -107,6 +108,8 @@ function Shell() {
   useEffect(() => {
     if (!setUp) setTab('today');
   }, [setUp]);
+  // The automatic GitHub backup, once he sets it up (SPEC.md section 8).
+  useEffect(() => watchAutoBackup(repo), [repo]);
   // A new version never reloads the app during a session or setup (SPEC.md section 7).
   useEffect(() => setUpdateBusy(!setUp || session !== null), [setUp, session]);
 

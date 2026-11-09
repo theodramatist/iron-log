@@ -4,6 +4,7 @@
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { planFor, type ConditioningPlan } from '../../engine';
 import { alertNow } from '../alerts';
+import { BackupNow } from '../BackupNow';
 import { nowIso } from '../clock';
 import { Confirm, Question, Stepper, YesNo } from '../components';
 import { clock } from '../format';
@@ -423,6 +424,7 @@ function DoneView(props: { done: { food: string[]; stopped: boolean }; onClose: 
           ))}
         </div>
       )}
+      {!done.stopped && <BackupNow />}
       <button type="button" class="btn btn-primary" onClick={props.onClose}>
         Done
       </button>

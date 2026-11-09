@@ -16,14 +16,15 @@ import {
 } from '../../engine';
 import { exportBackup, readBackupFile } from '../backups';
 import { Choice, Confirm, Question, Sheet, YesNo } from '../components';
-import { lb, shortDate } from '../format';
+import { lb, shortDate, wallTime } from '../format';
 import { useApp } from '../store';
+import { backUpIfChanged, checkRepo, parseRepo } from '../githubBackup';
 import { checkForUpdate, useUpdateReady, type UpdateCheck } from '../update';
 import { PlatePairsEditor } from './Setup';
 
 export function Settings() {
   const app = useApp();
-  const { program, input, today } = app;
+  const { program, input, today, repo } = app;
   const settings = useMemo(() => effectiveSettings(input), [input]);
   const [sheet, setSheet] = useState<null | 'plates' | 'weigh' | 'floor'>(null);
   const [message, setMessage] = useState<string | null>(null);
@@ -135,7 +136,11 @@ export function Settings() {
           <span class="num">{program.meta.programVersion}</span>
         </div>
         <UpdateRow />
-        <p class="small muted">Everything stays on this phone. Nothing is sent anywhere.</p>
+        <p class="small muted">
+          {repo.meta().remote
+            ? 'Everything stays on this phone, except the backup file the automatic backup sends to your GitHub repository.'
+            : 'Everything stays on this phone. Nothing is sent anywhere.'}
+        </p>
       </div>
 
       {sheet === 'plates' && (
@@ -377,6 +382,7 @@ function DataCard(props: { onMessage: (m: string) => void }) {
           </label>
         </div>
       </div>
+      <AutoBackup onMessage={props.onMessage} />
       <div class="question">
         <button type="button" class="btn btn-danger" onClick={() => setErase(1)}>
           Erase all data
@@ -468,5 +474,166 @@ function UpdateRow() {
         </p>
       )}
     </>
+  );
+}
+
+const BACKUP_TEXT = {
+  saved: 'Backed up.',
+  unchanged: 'Nothing new since the last backup.',
+  failed: "That didn't go through.",
+  offline: 'No connection right now. It will back up once there is one.',
+  off: '',
+} as const;
+
+function backupTime(at: string): string {
+  return `${shortDate(localDate(new Date(at)))} at ${wallTime(Date.parse(at))}`;
+}
+
+/** Automatic backup to a private GitHub repository (SPEC.md section 8, Q25). */
+function AutoBackup(props: { onMessage: (m: string) => void }) {
+  const { repo } = useApp();
+  const remote = repo.meta().remote ?? null;
+  const [open, setOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [note, setNote] = useState<string | null>(null);
+  return (
+    <div class="question">
+      <div class="question-text">Automatic backup</div>
+      {remote ? (
+        <>
+          <p class="small muted">
+            On, to <span class="num">{remote.repo}</span>. {remote.lastAt ? `Last backup ${backupTime(remote.lastAt)}.` : 'No backup yet.'} It backs up after each
+            change whenever the phone has a signal.
+          </p>
+          {remote.lastError && (
+            <p class="note alarm" role="alert">
+              {remote.lastError}
+            </p>
+          )}
+          {note && (
+            <p class="small muted" role="status">
+              {note}
+            </p>
+          )}
+          <div class="btn-row">
+            <button
+              type="button"
+              class="btn btn-ghost"
+              disabled={busy}
+              onClick={() => {
+                setBusy(true);
+                setNote(null);
+                void backUpIfChanged(repo, { force: true }).then((r) => {
+                  setBusy(false);
+                  setNote(BACKUP_TEXT[r]);
+                });
+              }}
+            >
+              {busy ? 'Backing up' : 'Back up now'}
+            </button>
+            <button type="button" class="btn btn-ghost" onClick={() => setOpen(true)}>
+              Change
+            </button>
+          </div>
+          <button type="button" class="btn-quiet" onClick={() => void repo.setRemote(null).then(() => props.onMessage('Automatic backup is off.'))}>
+            Turn off
+          </button>
+        </>
+      ) : (
+        <>
+          <p class="small muted">Off. It can save your backup file to a private GitHub repository after every change, keeping every version.</p>
+          <div class="btn-row">
+            <button type="button" class="btn btn-ghost" onClick={() => setOpen(true)}>
+              Set up
+            </button>
+          </div>
+        </>
+      )}
+      {open && (
+        <AutoBackupSheet
+          onClose={() => setOpen(false)}
+          onDone={(m) => {
+            setOpen(false);
+            props.onMessage(m);
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+function AutoBackupSheet(props: { onClose: () => void; onDone: (message: string) => void }) {
+  const { repo } = useApp();
+  const current = repo.meta().remote ?? null;
+  const [name, setName] = useState(current?.repo ?? '');
+  const [token, setToken] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [problem, setProblem] = useState<string | null>(null);
+  const useToken = token.trim() || current?.token || '';
+  const valid = parseRepo(name) !== null && useToken !== '';
+  const save = async () => {
+    setBusy(true);
+    setProblem(null);
+    const check = await checkRepo(name, useToken);
+    if (!check.ok) {
+      setBusy(false);
+      setProblem(check.message);
+      return;
+    }
+    const r = parseRepo(name)!;
+    await repo.setRemote({ repo: `${r.owner}/${r.name}`, token: useToken, lastAt: null, lastHash: null, lastError: null });
+    const result = await backUpIfChanged(repo, { force: true });
+    setBusy(false);
+    if (result === 'saved') props.onDone('Automatic backup is on. The first backup is in your repository.');
+    else setProblem(repo.meta().remote?.lastError ?? "The first backup didn't go through. It will try again.");
+  };
+  return (
+    <Sheet title="Automatic backup" onClose={props.onClose}>
+      <ol class="small steps">
+        <li>On GitHub, create a private repository, such as iron-log-backups.</li>
+        <li>
+          In GitHub's Settings, under Developer settings, make a fine-grained personal access token. Give it that repository only, with Contents set to
+          Read and write.
+        </li>
+        <li>Enter both here.</li>
+      </ol>
+      <div class="field">
+        <label for="ab-repo">Repository</label>
+        <input
+          id="ab-repo"
+          autocapitalize="off"
+          autocorrect="off"
+          spellcheck={false}
+          placeholder="you/iron-log-backups"
+          value={name}
+          onInput={(e) => setName(e.currentTarget.value)}
+        />
+      </div>
+      <div class="field">
+        <label for="ab-token">Token</label>
+        <input
+          id="ab-token"
+          type="password"
+          autocomplete="off"
+          placeholder={current ? 'Saved. Enter a new one to replace it.' : 'github_pat_...'}
+          value={token}
+          onInput={(e) => setToken(e.currentTarget.value)}
+        />
+      </div>
+      <p class="small muted">The token stays on this phone, and it's never in an exported file. Only the backup file goes to GitHub.</p>
+      {problem && (
+        <p class="note alarm" role="alert">
+          {problem}
+        </p>
+      )}
+      <div class="btn-row">
+        <button type="button" class="btn btn-ghost" onClick={props.onClose}>
+          Cancel
+        </button>
+        <button type="button" class="btn btn-primary" disabled={!valid || busy} onClick={() => void save()}>
+          {busy ? 'Checking' : 'Save'}
+        </button>
+      </div>
+    </Sheet>
   );
 }

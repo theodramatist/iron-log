@@ -1043,6 +1043,16 @@ p {
   margin-top: 16px;
 }
 
+ol.steps {
+  margin: 0 0 12px;
+  padding-left: 1.2em;
+  color: var(--muted);
+}
+
+ol.steps li {
+  margin: 4px 0;
+}
+
 .add-plate p {
   margin: 0;
 }
