@@ -3,7 +3,7 @@
 
 import { sortEvents, type AnyEvent, type EngineInput, type IsoTimestamp, type LocalDate, type Program, type Settings } from '../engine';
 import { buildBackup } from './backup';
-import { EMPTY_META, type BackupFile, type DraftKind, type DraftRecord, type Meta, type StorageAdapter } from './types';
+import { EMPTY_META, type BackupFile, type DraftKind, type DraftRecord, type Meta, type StorageAdapter, type RemoteBackup } from './types';
 
 export interface Clock {
   nowIso(): IsoTimestamp;
@@ -35,6 +35,8 @@ export interface Repository {
   setSettings(settings: Partial<Settings>): Promise<void>;
   backup(): BackupFile;
   markExported(): Promise<void>;
+  /** Turn the automatic GitHub backup on or off, or record how its last try went. */
+  setRemote(remote: RemoteBackup | null): Promise<void>;
   /** Replace everything with an imported backup. The UI confirms first. */
   restore(file: BackupFile): Promise<void>;
   clearAll(): Promise<void>;
@@ -131,6 +133,12 @@ export function createRepository(
 
     async markExported() {
       meta = { ...meta, lastExportAt: clock.nowIso() };
+      await adapter.putMeta(meta);
+      changed();
+    },
+
+    async setRemote(remote) {
+      meta = { ...meta, remote };
       await adapter.putMeta(meta);
       changed();
     },

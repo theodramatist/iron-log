@@ -20,6 +20,7 @@ import { missingRatings, missingSpare, setEffort, setSpare, type LiftingDraft } 
 import { useApp } from '../../store';
 import { EffortChips } from './LiftCard';
 import type { Update } from './shared';
+import { BackupNow } from '../../BackupNow';
 
 export interface Summary {
   lines: { lift: BarbellLiftId; label: string; next: string; change: string | null }[];
@@ -181,6 +182,7 @@ export function SummaryView(props: { summary: Summary; d: LiftingDraft; onDone: 
           ))}
         </div>
       )}
+      <BackupNow />
       <button type="button" class="btn btn-primary" onClick={props.onDone}>
         Done
       </button>
