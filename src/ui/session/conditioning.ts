@@ -22,6 +22,8 @@ export interface ConditioningDraft {
   past: boolean;
   /** Left unfinished on an earlier day and reopened as a past entry. */
   fromEarlierDay?: boolean;
+  /** Extra easy minutes (RULES.md section 8, Q24): no check-in and no intervals, and they count toward the weekly bar only. */
+  extra?: boolean;
   step: 'checkIn' | 'setup' | 'running' | 'finish';
   shortNight: boolean | null;
   /** Null until he changes them: the plan's defaults. */
@@ -36,14 +38,18 @@ export interface ConditioningDraft {
   notes: string;
 }
 
-export function newConditioningDraft(date: LocalDate, past: boolean): ConditioningDraft {
+/** Extra easy minutes start here, and the stepper runs between these. */
+export const EXTRA_MINUTES = { start: 20, min: 5, max: 90 } as const;
+
+export function newConditioningDraft(date: LocalDate, past: boolean, extra = false): ConditioningDraft {
   return {
     v: CONDITIONING_DRAFT_VERSION,
     kind: 'conditioning',
     date,
     past,
-    step: 'checkIn',
-    shortNight: null,
+    ...(extra ? { extra: true } : {}),
+    step: extra ? 'setup' : 'checkIn',
+    shortNight: extra ? false : null,
     targetMinutes: null,
     intervals: null,
     equipmentDown: [],
@@ -57,6 +63,23 @@ export function newConditioningDraft(date: LocalDate, past: boolean): Conditioni
 }
 
 export function conditioningPlanOf(input: EngineInput, d: ConditioningDraft): ConditioningPlan {
+  if (d.extra) {
+    // Easy minutes only, at whatever length he picks: the phase's range and intervals don't apply.
+    const base = conditioningState(input, d.date, { shortNight: true, equipmentDown: d.equipmentDown });
+    return {
+      ...base,
+      range: [EXTRA_MINUTES.min, EXTRA_MINUTES.max],
+      minMinutes: EXTRA_MINUTES.min,
+      targetMinutes: d.targetMinutes ?? EXTRA_MINUTES.start,
+      intervals: 0,
+      maxIntervals: 0,
+      noIntervalsReason: null,
+      layout: null,
+      machines: { ...base.machines, intervals: null },
+      screeningGate: false,
+      layoffDrop: 'none',
+    };
+  }
   return conditioningState(input, d.date, {
     shortNight: d.shortNight ?? false,
     ...(d.targetMinutes !== null ? { targetMinutes: d.targetMinutes } : {}),
@@ -170,5 +193,6 @@ export function toConditioningEvent(plan: ConditioningPlan, d: ConditioningDraft
   };
   if (d.notes.trim()) ev.notes = d.notes.trim();
   if (opts.stopped) ev.stopped = true;
+  if (d.extra) ev.extra = true;
   return ev;
 }

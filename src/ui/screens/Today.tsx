@@ -55,6 +55,14 @@ export function Today(props: { onStart: (route: SessionRoute) => void }) {
     }
   };
 
+  // Extra easy minutes (RULES.md section 8, Q24): the conditioning timer, easy only, counted toward the weekly bar.
+  const beginExtra = async () => {
+    unlockAudio();
+    const draft = newConditioningDraft(today, false, true);
+    await repo.saveDraft('conditioning', draft);
+    props.onStart({ kind: 'conditioning', draft });
+  };
+
   const tryStart = (kind: 'lifting' | 'conditioning') => {
     const consecutive = kind === 'lifting' && repo.events().some((e) => e.type === 'liftingSession' && !e.stopped && e.date === addDays(today, -1));
     if (consecutive) setConfirm({ kind, past: null });
@@ -86,7 +94,7 @@ export function Today(props: { onStart: (route: SessionRoute) => void }) {
 
       {update && (
         <div class="note info" role="status">
-          <div>Update ready. It takes effect the next time you open Iron Log.</div>
+          <div>Update ready. It goes in the next time you come back to Iron Log.</div>
           <div class="btn-row">
             <button type="button" class="chip" onClick={update}>
               Update now
@@ -146,6 +154,11 @@ export function Today(props: { onStart: (route: SessionRoute) => void }) {
         </div>
       )}
 
+      {day.kind !== 'sick' && (
+        <button type="button" class="btn-quiet" onClick={() => void beginExtra()}>
+          Log extra easy minutes
+        </button>
+      )}
       <button type="button" class="btn-quiet" onClick={() => setPast(true)}>
         Log a past session
       </button>
@@ -284,6 +297,13 @@ function SessionCard(props: { day: DayPlan; week: WeekSummary; onUndo: () => voi
             </li>
           )}
           {day.conditioning.noIntervalsReason && <li class="muted">{day.conditioning.noIntervalsReason}</li>}
+        </ul>
+      )}
+      {day.extraConditioning.length > 0 && (
+        <ul class="lines">
+          {day.extraConditioning.map((c) => (
+            <li key={c.id}>Extra · {c.actualMinutes} min easy</li>
+          ))}
         </ul>
       )}
       {done &&

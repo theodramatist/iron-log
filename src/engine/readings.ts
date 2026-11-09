@@ -1,8 +1,8 @@
 // Readings of RULES.md where it was ambiguous (CLAUDE.md, ground rule 1).
-// The owner decided Q1 through Q21 on 2026-11-03 and asked for Q22 and Q23
-// on 2026-11-04. Each decision is an [app rule] in the RULES.md section named,
-// and its number matches QUESTIONS.md. New questions get a constant here and
-// an entry there.
+// The owner decided Q1 through Q21 on 2026-11-03, asked for Q22 and Q23 on
+// 2026-11-04, and asked for Q24 on 2026-11-09. Each decision is an [app rule]
+// in the RULES.md section named, and its number matches QUESTIONS.md. New
+// questions get a constant here and an entry there.
 
 export const READINGS = {
   /** Q1 (section 5, T29): a failure after the food lever's extra round still checks the maintenance-break hold first. */
@@ -71,6 +71,9 @@ export const READINGS = {
 
   /** Q23 (section 14): the rest timer can take how many reps were left on the set just logged, and a short set starts the missed rest. */
   REST_FROM_SET_JUST_DONE: true,
+
+  /** Q24 (section 8, T105 to T107): extra easy minutes count toward the weekly bar and nothing else. */
+  EXTRA_MINUTES_COUNT_ONLY_TOWARD_BAR: true,
 
   /** Q18 (section 14): time projection estimates, in seconds. */
   BIKE_WARMUP_SEC: 300,

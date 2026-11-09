@@ -170,6 +170,8 @@ export interface ConditioningSessionEvent extends BaseEvent {
   intervalsDone: number;
   notes?: string;
   stopped?: boolean;
+  /** Extra easy minutes (RULES.md section 8, Q24): they count toward the weekly bar and nothing else. */
+  extra?: boolean;
 }
 
 export interface BodyweightEvent extends BaseEvent {

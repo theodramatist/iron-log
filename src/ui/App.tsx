@@ -18,6 +18,7 @@ import { Week } from './screens/Week';
 import { CONDITIONING_DRAFT_VERSION, type ConditioningDraft } from './session/conditioning';
 import { LIFTING_DRAFT_VERSION, type LiftingDraft } from './session/lifting';
 import { AppProvider, useApp } from './store';
+import { setUpdateBusy } from './update';
 import './theme.css';
 
 const PROGRAM = programJson as Program;
@@ -106,6 +107,8 @@ function Shell() {
   useEffect(() => {
     if (!setUp) setTab('today');
   }, [setUp]);
+  // A new version never reloads the app during a session or setup (SPEC.md section 7).
+  useEffect(() => setUpdateBusy(!setUp || session !== null), [setUp, session]);
 
   // A draft survives the app being closed (SPEC.md section 3): reopen it.
   useEffect(() => {

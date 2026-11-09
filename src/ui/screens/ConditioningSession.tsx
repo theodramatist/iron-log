@@ -84,7 +84,8 @@ export function ConditioningSession(props: { initial: ConditioningDraft; onClose
     frozen.current = live;
     await repo.clearDraft('conditioning').catch(() => undefined);
     setProblem(null);
-    setDone({ food: stopped ? [] : planFor(repo.input(app.today), d.date).foodLines, stopped });
+    // Extra minutes add no food line (RULES.md section 8).
+    setDone({ food: stopped || d.extra ? [] : planFor(repo.input(app.today), d.date).foodLines, stopped });
     return true;
   };
 
@@ -95,7 +96,7 @@ export function ConditioningSession(props: { initial: ConditioningDraft; onClose
     });
 
   return (
-    <div class="session" role="dialog" aria-modal="true" aria-label="Conditioning session">
+    <div class="session" role="dialog" aria-modal="true" aria-label={d.extra ? 'Extra easy minutes' : 'Conditioning session'}>
       <SessionTop
         past={d.past}
         date={d.date}
@@ -174,6 +175,7 @@ function SetupView(props: { plan: ConditioningPlan; d: ConditioningDraft; update
     if (d.past) update(finish({ ...d, step: 'finish' }, plan, program, nowIso()));
     else update(start(d, nowIso()));
   };
+  if (d.extra) return <ExtraSetup plan={plan} d={d} update={update} onBegin={begin} />;
   return (
     <>
       <div class="eyebrow">
@@ -236,6 +238,41 @@ function SetupView(props: { plan: ConditioningPlan; d: ConditioningDraft; update
           {d.past ? 'Next' : 'Start'}
         </button>
       )}
+    </>
+  );
+}
+
+/**
+ * Extra easy minutes (RULES.md section 8, Q24): any length, easy only. On a
+ * lifting day they come after lifting, never before (PROTOCOL.md, Supersets
+ * and trisets).
+ */
+function ExtraSetup(props: { plan: ConditioningPlan; d: ConditioningDraft; update: Update; onBegin: () => void }) {
+  const { program, input } = useApp();
+  const { plan, d, update } = props;
+  const day = useMemo(() => planFor(input, d.date), [input, d.date]);
+  const liftingFirst = day.kind === 'lifting' && day.status !== 'done';
+  return (
+    <>
+      <div class="eyebrow">Weekly minutes only</div>
+      <h1>Extra easy minutes</h1>
+      {liftingFirst && <p class="note info">On a lifting day, these come after lifting, never before.</p>}
+      <div class="card">
+        <Question text="Minutes">
+          <Stepper label="Minutes" value={plan.targetMinutes} step={5} min={plan.minMinutes} max={plan.range[1]} onChange={(v) => update({ ...d, targetMinutes: v })} />
+        </Question>
+        <ul class="lines plain">
+          <li>
+            Easy · {plan.machines.easy} · {program.conditioning.easy.intensity}
+          </li>
+        </ul>
+        <p class="small muted">
+          These add to this week's minutes. They aren't one of the week's two conditioning sessions, so they don't move your conditioning week or phase.
+        </p>
+      </div>
+      <button type="button" class="btn btn-primary" onClick={props.onBegin}>
+        {d.past ? 'Next' : 'Start'}
+      </button>
     </>
   );
 }

@@ -38,7 +38,10 @@ export function SessionDetail(props: { event: LoggedSession; onClose: () => void
     );
   }
   return (
-    <Sheet title={`${ev.type === 'liftingSession' ? `Workout ${ev.workout}` : 'Conditioning'} · ${shortDate(ev.date)}`} onClose={props.onClose}>
+    <Sheet
+      title={`${ev.type === 'liftingSession' ? `Workout ${ev.workout}` : ev.extra ? 'Extra minutes' : 'Conditioning'} · ${shortDate(ev.date)}`}
+      onClose={props.onClose}
+    >
       {ev.stopped && <p class="note alarm">Ended with Stop session. Nothing from it counts.</p>}
       {ev.type === 'liftingSession' ? <LiftingSummary ev={ev} /> : <ConditioningSummary ev={ev} />}
       {ev.notes && <p class="cue">{ev.notes}</p>}
@@ -153,8 +156,8 @@ function ConditioningSummary(props: { ev: ConditioningSessionEvent }) {
         </li>
       )}
       <li class="small muted">
-        Conditioning week {ev.conditioningWeek}, phase {ev.phase}
-        {ev.shortNight ? ' · last night under 6 hours' : ''}
+        {ev.extra ? 'Extra easy minutes: they count toward the weekly bar only.' : `Conditioning week ${ev.conditioningWeek}, phase ${ev.phase}`}
+        {!ev.extra && ev.shortNight ? ' · last night under 6 hours' : ''}
       </li>
     </ul>
   );

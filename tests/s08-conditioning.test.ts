@@ -156,6 +156,34 @@ describe('§8 Conditioning', () => {
     expect(friday.conditioning).toMatchObject({ conditioningWeek: 3, intervals: 0, layout: null });
   });
 
+  it('T105 Extra minutes on a lifting day', () => {
+    const lifting = buildLog().cond('2026-11-03', { minutes: 20 }).lift('2026-11-04').day('2026-11-04', '2026-11-04').foodLines;
+    const log = buildLog().cond('2026-11-03', { minutes: 20 }).lift('2026-11-04').extra('2026-11-04', 25);
+    expect(log.week('2026-11-02', '2026-11-04')).toMatchObject({ conditioningMinutes: 45, conditioningDone: 1 });
+    expect(log.day('2026-11-05', '2026-11-04').kind).toBe('conditioning');
+    const wednesday = log.day('2026-11-04', '2026-11-04');
+    expect(wednesday).toMatchObject({ kind: 'lifting', status: 'done', workout: 'B' });
+    expect(wednesday.loggedConditioning).toEqual([]);
+    expect(wednesday.extraConditioning.map((e) => e.actualMinutes)).toEqual([25]);
+    expect(wednesday.foodLines).toEqual(lifting);
+  });
+
+  it("T106 Extra minutes don't fill a conditioning week", () => {
+    const log = buildLog().cond('2026-11-03').extra('2026-11-04', 30).extra('2026-11-06', 30);
+    expect(log.cplan('2026-11-10').conditioningWeek).toBe(1);
+    expect(log.week('2026-11-02', '2026-11-08')).toMatchObject({ conditioningDone: 1 });
+    expect(buildLog().condWeek('2026-11-02').cplan('2026-11-10').conditioningWeek).toBe(2);
+  });
+
+  it('T107 Extra minutes before lifting', () => {
+    const log = buildLog().cond('2026-11-03').extra('2026-11-04', 15);
+    expect(log.day('2026-11-04', '2026-11-04')).toMatchObject({ kind: 'lifting', status: 'planned', workout: 'B' });
+    expect(log.week('2026-11-02', '2026-11-04').conditioningMinutes).toBe(35);
+    log.skip('2026-11-04', 'lifting');
+    expect(log.day('2026-11-04', '2026-11-04').status).toBe('skipped');
+    expect(log.day('2026-11-05', '2026-11-04').kind).toBe('lifting');
+  });
+
   it('Q5 Short sessions still add to the weekly bar', () => {
     const log = buildLog().cond('2026-11-10', { minutes: 15 }).cond('2026-11-12', { minutes: 25 });
     expect(log.week('2026-11-09', '2026-11-13')).toMatchObject({ conditioningMinutes: 40, conditioningDone: 1 });

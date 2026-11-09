@@ -9,9 +9,9 @@ import { READINGS } from './readings';
 import type { EngineState, SkipRecord } from './state';
 import type { LocalDate } from './types';
 
-/** A skip holds only while nothing is logged on its day: finding the time after all cancels it. */
+/** A skip holds only while no session is logged on its day: finding the time after all cancels it. Extra minutes don't. */
 function holds(st: EngineState, k: SkipRecord): boolean {
-  return !st.sessions.some((r) => r.date === k.date) && !st.condSessions.some((c) => c.date === k.date);
+  return !st.sessions.some((r) => r.date === k.date) && !st.condSessions.some((c) => c.date === k.date && !c.event.extra);
 }
 
 /** The skip on `date`, if one holds. */

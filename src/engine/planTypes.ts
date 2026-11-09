@@ -187,6 +187,8 @@ export interface DayPlan {
   conditioning: ConditioningPlan | null;
   loggedLifting: LiftingSessionEvent[];
   loggedConditioning: ConditioningSessionEvent[];
+  /** Extra easy minutes logged that day (section 8): shown, and added to the weekly bar, but never the day's session. */
+  extraConditioning: ConditioningSessionEvent[];
   message: string | null;
   notes: string[];
   foodLines: string[];

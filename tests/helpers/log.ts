@@ -233,6 +233,26 @@ export class Log {
     return this;
   }
 
+  /** Extra easy minutes (RULES.md section 8, Q24). */
+  extra(date: LocalDate, minutes: number): this {
+    const cp = conditioningState(this.input(date), date, {});
+    this.events.push({
+      ...this.stamp(),
+      type: 'conditioningSession',
+      date,
+      conditioningWeek: cp.conditioningWeek,
+      phase: cp.phase,
+      shortNight: false,
+      targetMinutes: minutes,
+      actualMinutes: minutes,
+      machines: { easy: cp.machines.easy },
+      intervalsPlanned: 0,
+      intervalsDone: 0,
+      extra: true,
+    });
+    return this;
+  }
+
   /** Both conditioning sessions (Tuesday and Thursday) of the week starting `monday`. */
   condWeek(monday: LocalDate, o: CondOpts = {}): this {
     return this.cond(addDaysStr(monday, 1), o).cond(addDaysStr(monday, 3), o);

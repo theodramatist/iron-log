@@ -48,7 +48,7 @@ Every event has `id`, `type`, `date` (local date), `createdAt`, and `updatedAt`.
 | --- | --- |
 | `setup` | age bracket, Monday's effort ratings and chin spare reps, plate inventory, bar weight, machine steps, `pullChoice`, bodyweight |
 | `liftingSession` | workout, week type, start and end times, check-ins, per lift (prescription, warm-ups done, the layoff warm-up answer, each work set with weight, reps, form-broke and skipped flags, effort rating, pain stop, calibration result), chins and dips (assistance or added load, reps per set, spare reps, negatives done) or their substitutions, spin minutes, notes, `stopped` |
-| `conditioningSession` | conditioning week, phase, short-night answer, target minutes, actual minutes, machines, intervals planned and done, notes, `stopped` |
+| `conditioningSession` | conditioning week, phase, short-night answer, target minutes, actual minutes, machines, intervals planned and done, notes, `stopped`, and `extra` for extra easy minutes (RULES.md section 8) |
 | `bodyweight` | pounds |
 | `settingsChange` | key, old value, new value |
 | `weekDeclaration` | week start, kind (`light`, `floor`, `illness`, `overload`), scope (`restOfWeek` or `nextWeek`) |
@@ -86,6 +86,7 @@ Six short steps, each one screen, with Back and Next:
 - **Banners,** at most two visible, in priority order: pain check, light-week suggestion, food-lever question, graduation, early-stall note, maintenance break, export reminder.
 - **Week strip:** Monday through Friday with done, planned, missed, and off states.
 - **Conditioning bar:** minutes this week against 150.
+- **Extra easy minutes:** a "Log extra easy minutes" button on any day opens the conditioning timer for easy minutes only, with no check-in or intervals. On a lifting day it says to do them after lifting. They add to the bar only (RULES.md section 8).
 - **Food line:** the day's nutrition prompt from RULES.md section 13.
 
 ### 5.3 Lifting session
@@ -146,7 +147,7 @@ Age bracket, bodyweight, bar and plates, assist-machine steps, `pullChoice`, spl
 ## 7. iPhone requirements and limits
 
 - **Manifest:** `name` "Iron Log", `short_name` "Iron Log", `display` "standalone", `orientation` "portrait", `start_url` and `scope` "./", theme and background colors, and 192, 512, and maskable 512 icons. Add a 180×180 `apple-touch-icon`, `apple-mobile-web-app-title`, and `viewport-fit=cover`.
-- **Offline:** the service worker precaches every asset. Every app on theodramatist.github.io shares one origin, so the worker lives at `/iron-log/sw.js` with scope `/iron-log/`. That is the old Iron Log's URL, so installed phones update to the new worker, which deletes the old `ironlog-v*` caches on activate. Use update prompting rather than auto-reload, and never reload during a session. Show "Update ready" on the Today screen, applied on the next launch. iOS resumes a Home Screen app without reloading it, so the app also checks for a new version whenever it comes back to the screen and hourly while open, and Settings has "Check for updates." A check downloads `sw.js` and sends nothing.
+- **Offline:** the service worker precaches every asset. Every app on theodramatist.github.io shares one origin, so the worker lives at `/iron-log/sw.js` with scope `/iron-log/`. That is the old Iron Log's URL, so installed phones update to the new worker, which deletes the old `ironlog-v*` caches on activate. Updates apply on their own, as the owner asked on 2026-11-09, and never during a session or setup. iOS resumes a Home Screen app without reloading it, so the app checks for a new version whenever it opens or comes back to the screen and hourly while open, and Settings has "Check for updates." A check downloads `sw.js` and sends nothing. A new version that finishes downloading within 20 seconds of opening or coming back loads at once. One that arrives later shows "Update ready" on Today and loads the next time he comes back, or at once with "Update now."
 - **Storage:** IndexedDB, in a database named `iron-log`. After setup, call `navigator.storage.persist()` and show the result in Settings. WebKit grants it by heuristics, such as whether the site is opened as a home-screen web app, and persistent origins are excluded from eviction ([WebKit, "Updates to Storage Policy," August 10, 2023](https://webkit.org/?p=14403)). Because the grant isn't guaranteed, backups are required (section 8).
 - **Screen awake:** request a Screen Wake Lock while a session screen is open, and request it again when the app returns to the foreground. It works in home-screen web apps from iOS 18.4 ([WebKit bug 254545](https://bugs.webkit.org/show_bug.cgi?id=254545)). Fail quietly where it's missing.
 - **Timers** compute remaining time from stored timestamps, never from counting ticks, because iOS suspends background pages.

@@ -131,6 +131,8 @@ describe('Data: the event store, drafts, and backups', () => {
       (f.events as AnyEvent[]).find((e): e is LiftingSessionEvent => e.type === 'liftingSession')!;
     expect(bad((f) => ((lifting(f) as unknown as { lifts: unknown }).lifts = 'squat'))).toMatchObject({ ok: false });
     const skip = (f: Record<string, unknown>) => (f.events as AnyEvent[]).find((e) => e.type === 'skip') as unknown as Record<string, unknown>;
+    const cond = (f: Record<string, unknown>) => (f.events as AnyEvent[]).find((e) => e.type === 'conditioningSession') as unknown as Record<string, unknown>;
+    expect(bad((f) => (cond(f).extra = 'yes'))).toMatchObject({ ok: false });
     expect(bad((f) => (skip(f).reason = 'tired'))).toMatchObject({ ok: false });
     expect(bad((f) => (skip(f).kind = 'rest'))).toMatchObject({ ok: false });
     expect(bad((f) => (lifting(f).lifts[0]!.sets = [{ weight: '95', reps: 5 }] as never))).toMatchObject({ ok: false });
