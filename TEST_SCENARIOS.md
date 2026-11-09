@@ -141,6 +141,12 @@ Unless a scenario gives a date, assume program week 10 or later and no maintenan
 
 **T88 · Short sessions (§8).** A 20-minute Tuesday counts as a completed session. A 25-minute Thursday counts, has no intervals, and the interval block is hidden. A 15-minute session is logged but doesn't count.
 
+**T105 · Extra minutes on a lifting day (§8).** Given 11-02 A and 20 minutes of conditioning on Tuesday 11-03. When Wednesday 11-04's lifting is done and 25 extra easy minutes follow. Then the week shows 45 minutes and still one conditioning session, Thursday 11-05 is still conditioning, and Wednesday's food line is the lifting day's alone.
+
+**T106 · Extra minutes don't fill a conditioning week (§8).** Given only Tuesday's session in the week of 11-02, plus 30 extra minutes on Wednesday and Friday. Then Tuesday 11-10 is still conditioning week 1. With Thursday's session done as well, it would be week 2.
+
+**T107 · Extra minutes before lifting (§1, §8).** Given Wednesday 11-04 planned for lifting. When 15 extra minutes are logged first. Then Wednesday is still planned lifting, Workout B, and the minutes count. A "No time today" skip on that day still moves the week.
+
 **T95 · Intervals stay on Thursday (§8).** Given conditioning week 3 (phase 2). With Tuesday's session done and Thursday swapped to lifting, a Friday conditioning session is easy only. With Monday swapped to conditioning and Tuesday's session done, the week has no intervals. With Tuesday missed, Thursday still has its 6 intervals.
 
 ## Warm-ups and calibration

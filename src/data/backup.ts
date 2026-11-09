@@ -101,7 +101,13 @@ function payloadOk(e: Obj): boolean {
         optional(e.spinMinutes, isNum)
       );
     case 'conditioningSession':
-      return isNum(e.actualMinutes) && isNum(e.intervalsDone) && isNum(e.phase) && isNum(e.conditioningWeek);
+      return (
+        isNum(e.actualMinutes) &&
+        isNum(e.intervalsDone) &&
+        isNum(e.phase) &&
+        isNum(e.conditioningWeek) &&
+        (e.extra === undefined || typeof e.extra === 'boolean')
+      );
     case 'bodyweight':
       return isNum(e.pounds);
     case 'settingsChange':

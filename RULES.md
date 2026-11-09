@@ -225,6 +225,7 @@ WEIGHTED (3 sets of 5 with a belt)
 - **Floor week:** no conditioning.
 - **Layoff [app rule].** If the last completed conditioning session was more than 21 days ago, drop one phase, to the first week of the lower phase. More than 60 days, go back to conditioning week 1.
 - **Weekly bar.** Conditioning minutes this calendar week (sessions plus after-lifting spins) against the 150-minute guideline. Sessions under 20 minutes still add their minutes. **[app rule]**
+- **Extra easy minutes [app rule].** He can log extra easy conditioning on any day, on a lifting day after lifting, never before. Extra minutes count toward the weekly bar and nothing else: they aren't one of the week's two conditioning sessions, so they don't count toward conditioning weeks, phases, caps, intervals, the layoff rule, or food prompts. They never mark a day done or cancel a "No time today" skip (section 1). The app logs them when he chooses and never suggests them.
 - Never offer extra sessions to make up for missed ones or for food.
 
 ## 9. Warm-ups and calibration

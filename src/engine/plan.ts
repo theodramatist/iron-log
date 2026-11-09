@@ -39,7 +39,8 @@ export function dayPlan(input: EngineInput, st: EngineState, date: LocalDate): D
   const weekType = weekTypeOn(st, date);
   const pw = programWeek(date, program.athlete.startDate);
   const loggedLifting = st.sessions.filter((r) => r.date === date).map((r) => r.event);
-  const loggedConditioning = st.condSessions.filter((c) => c.date === date).map((c) => c.event);
+  const loggedConditioning = st.condSessions.filter((c) => c.date === date && !c.event.extra).map((c) => c.event);
+  const extraConditioning = st.condSessions.filter((c) => c.date === date && c.event.extra).map((c) => c.event);
   const notes: string[] = [];
   if (program.safety.sorenessNoteProgramWeeks.includes(pw)) notes.push(program.safety.sorenessNote);
   if (weekType === 'floor' && insideBreak(program, date)) notes.push(program.deload.floorWeek.insideMaintenanceBreakNote);
@@ -59,6 +60,7 @@ export function dayPlan(input: EngineInput, st: EngineState, date: LocalDate): D
     conditioning: null,
     loggedLifting,
     loggedConditioning,
+    extraConditioning,
     message: null,
     projected: false,
     notes,
@@ -179,7 +181,7 @@ export function summarizeWeek(input: EngineInput, monday: LocalDate): WeekSummar
   projectAlternation(days, input.today);
   const inWeek = (d: LocalDate) => weekStart(d) === monday;
   const condMinutes = st.condSessions
-    .filter((c) => inWeek(c.date) && (c.counted || READINGS.SHORT_SESSIONS_COUNT_TOWARD_WEEKLY_BAR))
+    .filter((c) => inWeek(c.date) && (c.counted || c.event.extra || READINGS.SHORT_SESSIONS_COUNT_TOWARD_WEEKLY_BAR))
     .reduce((sum, c) => sum + c.minutes, 0);
   const spin = st.sessions.filter((r) => inWeek(r.date)).reduce((sum, r) => sum + r.spinMinutes, 0);
   return {

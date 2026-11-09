@@ -509,6 +509,11 @@ function processAssist(st: EngineState, ev: LiftingSessionEvent): void {
 
 function processConditioningSession(st: EngineState, ev: ConditioningSessionEvent): void {
   if (ev.stopped) return;
+  // Extra easy minutes (section 8, Q24): the weekly bar, and nothing else.
+  if (ev.extra && READINGS.EXTRA_MINUTES_COUNT_ONLY_TOWARD_BAR) {
+    st.condSessions.push({ event: ev, date: ev.date, minutes: ev.actualMinutes, counted: false, intervalsDone: 0, phase: ev.phase });
+    return;
+  }
   st.cond = advanceCond(st, st.cond, weekStart(ev.date));
   const counted = ev.actualMinutes >= st.program.conditioning.minimumSessionMin;
   if (counted) {
