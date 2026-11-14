@@ -65,7 +65,7 @@ export function Week() {
 
 function statusText(d: DayPlan, today: LocalDate): string {
   if (d.status === 'done') return 'Done';
-  if (d.status === 'skipped') return 'Skipped';
+  if (d.status === 'skipped') return d.skipReason === 'moved' ? 'Moved' : 'Skipped';
   if (d.kind === 'sick') return 'Sick';
   if (d.kind === 'off') return 'Off';
   if (d.status === 'missed') return 'Missed';

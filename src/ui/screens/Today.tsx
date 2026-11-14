@@ -9,12 +9,14 @@ import {
   weekdayIndex,
   weekStart,
   weekSummary,
+  yesterdayMove,
   type AnyEvent,
   type Banner,
   type DayPlan,
   type LocalDate,
   type Program,
   type WeekSummary,
+  type YesterdayMove,
 } from '../../engine';
 import { localDate } from '../../data';
 import { unlockAudio } from '../alerts';
@@ -39,6 +41,15 @@ export function Today(props: { onStart: (route: SessionRoute) => void }) {
   const [confirm, setConfirm] = useState<null | { kind: 'lifting' | 'conditioning'; past: LocalDate | null }>(null);
   const [menu, setMenu] = useState(false);
   const [past, setPast] = useState(false);
+  // "Do yesterday's workout today" (RULES.md section 1, Q26), and once it's moved, where today's session came from.
+  const move = useMemo(() => yesterdayMove(input), [input]);
+  const [moving, setMoving] = useState(false);
+  const movedFrom = useMemo(() => {
+    const yesterday = addDays(today, -1);
+    if (day.kind !== 'lifting' || day.status === 'skipped' || weekStart(yesterday) !== weekStart(today)) return null;
+    const y = planFor(input, yesterday);
+    return y.kind === 'lifting' && y.status === 'skipped' && y.skipReason === 'moved' ? y : null;
+  }, [input, today, day.kind, day.status]);
   const stoppedToday = repo.events().some((e) => (e.type === 'liftingSession' || e.type === 'conditioningSession') && e.stopped && e.date === today);
 
   const begin = async (kind: 'lifting' | 'conditioning', date: LocalDate, isPast: boolean) => {
@@ -106,7 +117,26 @@ export function Today(props: { onStart: (route: SessionRoute) => void }) {
       <Banners banners={day.banners.slice(0, 2)} />
       {day.banners.length < 2 && <BackupReminder />}
 
-      <SessionCard day={day} week={week} onUndo={() => day.skipId && void repo.remove(day.skipId)} />
+      <SessionCard
+        day={day}
+        week={week}
+        movedFrom={movedFrom}
+        onUndo={() => day.skipId && void repo.remove(day.skipId)}
+        onUndoMove={() => movedFrom?.skipId && void repo.remove(movedFrom.skipId)}
+      />
+      {move && (
+        <div class="note info">
+          <div>{weekdayLong(move.missed.date)}'s lifting wasn't logged. If you didn't get to it, you can do it today.</div>
+          <div class="btn-row">
+            <button type="button" class="chip" onClick={() => setMoving(true)}>
+              Do yesterday's workout today
+            </button>
+            <button type="button" class="chip" onClick={() => setPast(true)}>
+              Log it as done
+            </button>
+          </div>
+        </div>
+      )}
 
       {weekdayIndex(today) === 5 && day.kind === 'lifting' && day.status === 'planned' && (
         <div class="btn-row">
@@ -116,7 +146,7 @@ export function Today(props: { onStart: (route: SessionRoute) => void }) {
         </div>
       )}
       <div class="btn-row">
-        {day.kind !== 'sick' && !doneToday && day.swapTo && (
+        {day.kind !== 'sick' && !doneToday && day.swapTo && !(move && day.swapTo === 'lifting') && (
           <button type="button" class="btn btn-ghost" onClick={() => tryStart(day.swapTo!)}>
             Swap today: {day.swapTo === 'lifting' ? 'lifting' : 'conditioning'}
           </button>
@@ -177,6 +207,7 @@ export function Today(props: { onStart: (route: SessionRoute) => void }) {
         />
       )}
       {menu && <SomethingCameUp day={day} onClose={() => setMenu(false)} />}
+      {moving && move && <MoveYesterday move={move} onClose={() => setMoving(false)} />}
       {another && (
         <Sheet title="Another session today" onClose={() => setAnother(false)}>
           <p class="note">A session is already logged today. Two on one day is allowed.</p>
@@ -243,7 +274,7 @@ function weekCaps(program: Program, week: WeekSummary, today: LocalDate): { lift
 
 // ------------------------------------------------------------ session card
 
-function SessionCard(props: { day: DayPlan; week: WeekSummary; onUndo: () => void }) {
+function SessionCard(props: { day: DayPlan; week: WeekSummary; movedFrom: DayPlan | null; onUndo: () => void; onUndoMove: () => void }) {
   const { program } = useApp();
   const { day } = props;
   const weekTag = day.weekType === 'light' ? 'Light week' : day.weekType === 'floor' ? 'Floor week' : null;
@@ -261,6 +292,18 @@ function SessionCard(props: { day: DayPlan; week: WeekSummary; onUndo: () => voi
         {done && <span class="stage">Done</span>}
       </div>
       {day.kind === 'sick' && <p>{program.illness.sickModeMessage}</p>}
+      {props.movedFrom && (
+        <>
+          <p class="muted">{weekdayLong(props.movedFrom.date)}'s workout, moved to today.</p>
+          {!done && (
+            <div class="btn-row">
+              <button type="button" class="chip" onClick={props.onUndoMove}>
+                Undo
+              </button>
+            </div>
+          )}
+        </>
+      )}
       {skipped && (
         <>
           <p class="muted">
@@ -466,7 +509,7 @@ function WeekStrip(props: { days: DayPlan[]; today: LocalDate }) {
           d.status === 'done'
             ? `${doneKind}, done`
             : d.status === 'missed' || d.status === 'skipped'
-              ? `${what}, ${d.status}`
+              ? `${what}, ${d.skipReason === 'moved' ? 'moved' : d.status}`
               : d.status === 'off'
                 ? 'off'
                 : `${what}, planned`;
@@ -604,6 +647,45 @@ function NoTimeToday(props: { kind: 'lifting' | 'conditioning'; onClose: () => v
         </button>
         <button type="button" class="btn btn-primary" onClick={skip}>
           {props.kind === 'lifting' && after.length > 0 ? 'Move it' : 'Skip it'}
+        </button>
+      </div>
+    </Sheet>
+  );
+}
+
+/**
+ * "Do yesterday's workout today" (RULES.md section 1, Q26). Yesterday's
+ * missed lifting moves to today, and the rest of the week moves a day with
+ * it, as "No time today" would have moved it.
+ */
+function MoveYesterday(props: { move: YesterdayMove; onClose: () => void }) {
+  const app = useApp();
+  const { missed, after } = props.move;
+  const moveIt = () => {
+    void app.log({ type: 'skip', date: missed.date, kind: 'lifting', reason: 'moved' });
+    props.onClose();
+  };
+  return (
+    <Sheet title="Do yesterday's workout today?" onClose={props.onClose}>
+      <p>
+        {weekdayLong(missed.date)}'s session moves to today{after.length > 1 ? ', and the rest of the week moves a day with it' : ''}:
+      </p>
+      <ul class="lines">
+        {after.map((d) => (
+          <li key={d.date}>
+            {d.date === app.today ? 'Today' : weekdayShort(d.date)}: {d.kind === 'lifting' ? `Workout ${d.workout ?? ''}`.trim() : 'Conditioning'}
+          </li>
+        ))}
+      </ul>
+      {after.some((d) => d.date !== app.today && weekdayIndex(d.date) === 5 && d.kind === 'lifting') && (
+        <p class="small muted">If Saturday doesn't work, tap "Move it to Sunday" that morning.</p>
+      )}
+      <div class="btn-row">
+        <button type="button" class="btn btn-ghost" onClick={props.onClose}>
+          Cancel
+        </button>
+        <button type="button" class="btn btn-primary" onClick={moveIt}>
+          Move it
         </button>
       </div>
     </Sheet>

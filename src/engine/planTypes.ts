@@ -167,6 +167,14 @@ export interface Banner {
   lift?: LiftId;
 }
 
+/** "Do yesterday's workout today" (section 1, Q26): what moving yesterday's missed lifting session would do. */
+export interface YesterdayMove {
+  /** Yesterday: a lifting day missed with nothing logged. */
+  missed: DayPlan;
+  /** The sessions from today through Sunday once it moves, today's lifting first. */
+  after: DayPlan[];
+}
+
 export interface DayPlan {
   date: LocalDate;
   weekday: number;
@@ -176,8 +184,10 @@ export interface DayPlan {
   status: DayStatus;
   /** What "Swap today" would start instead, or null when no swap is available. */
   swapTo: 'lifting' | 'conditioning' | null;
-  /** On a day skipped with "No time today," the skip, so it can be undone (section 1). */
+  /** On a skipped day, the skip, so it can be undone (section 1). */
   skipId: string | null;
+  /** Why it was skipped: "No time today" (`time`), or moved to the next day after it was missed (`moved`, Q26). */
+  skipReason: 'time' | 'moved' | null;
   needsConsecutiveConfirm: boolean;
   workout: Workout | null;
   /** "Squat 3×5 · 115" lines. */

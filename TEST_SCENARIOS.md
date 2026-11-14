@@ -256,6 +256,10 @@ Unless a scenario gives a date, assume program week 10 or later and no maintenan
 
 **T104 · Saturday or Sunday (§1).** Given 11-02 A, 11-04 B, both conditioning sessions done, and Friday 11-06 skipped, so Saturday 11-07 is lifting. When Saturday is skipped too. Then Sunday 11-08 is lifting, Workout A, and once he lifts Sunday, Monday 11-09 asks before a second lifting day in a row. When Sunday is skipped as well, the session drops, and Monday is lifting, Workout A, with no question.
 
+**T108 · Yesterday's workout today (§1).** Given 11-02 A, Tuesday's conditioning done, and Wednesday 11-04 missed with nothing logged. When on Thursday 11-05 he moves yesterday's workout to today. Then Wednesday shows skipped, Thursday is lifting, Workout B, Friday is conditioning, and Saturday is lifting. Given instead Friday 11-06 missed after Wednesday's B, Saturday 11-07 is off until he moves Friday's workout to it, and then it is lifting, Workout A.
+
+**T109 · A lift added afterward (§17).** Given Wednesday 11-04's session logged with the deadlift never reached, so Friday 11-06's deadlift gets the weight Wednesday's would have had. When Wednesday's session is edited to add the deadlift at its prescription, made, rated 3–4 left. Then Friday's deadlift is 15 lb heavier. Chins with nothing logged that day can be added the same way, and replay as if they'd been logged. A calibration that was never reached can't be added afterward: it runs at the lift's next session, and so do dips that were to calibrate that day.
+
 **T101 · Time after all (§1).** Given Wednesday 11-04 skipped. When a lifting session is logged on Wednesday anyway. Then Wednesday is done, Thursday 11-05 is conditioning, and Saturday 11-07 is off.
 
 **T102 · Light squat day after a move (§6).** Given the light squat day on and a 200 squat on Monday 11-09. When Wednesday 11-11 is skipped. Then Thursday 11-12's squat is 2×5 at 160, because Saturday 11-14 can still follow, and Saturday's squat is heavy. With Wednesday simply missed and Thursday swapped to lifting, Thursday's squat is heavy.

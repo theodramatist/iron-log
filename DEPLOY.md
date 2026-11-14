@@ -54,6 +54,12 @@ For any later day that has already passed, start from Today:
 
 Any day from November 2 through yesterday can be logged this way. If you log a day that has later sessions after it, the app works those sessions out again.
 
+## Catching up
+
+If yesterday's lifting didn't happen and nothing was logged, Today offers **Do yesterday's workout today**. It moves yesterday's session to today and the rest of the week a day with it, through Sunday, so a missed Friday can be done on Saturday. If you did lift yesterday and only forgot to log it, tap **Log it as done** instead.
+
+If a logged session is missing a lift you did, open it from **Week**, tap **Edit**, and under "Didn't log something you did?" tap the lift. It starts at that day's prescription. Fix any reps that went differently, answer the question at the bottom, and tap **Save changes**. Chins and dips with nothing logged can be added the same way.
+
 ## Keeping your data safe
 
 The log lives on the phone. Back it up two ways.

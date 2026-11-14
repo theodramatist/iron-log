@@ -3,8 +3,8 @@
 import { sickOn } from './calendar';
 import { conditioningPlan } from './conditioning';
 import { programWeek, weekStart } from './dates';
-import { findNextLiftingDate, planForDate, summarizeWeek } from './plan';
-import type { ConditioningPlan, DayPlan, SessionPlan, WeekSummary } from './planTypes';
+import { findNextLiftingDate, findYesterdayMove, planForDate, summarizeWeek } from './plan';
+import type { ConditioningPlan, DayPlan, SessionPlan, WeekSummary, YesterdayMove } from './planTypes';
 import { inventoryFrom, loadableBetween } from './plates';
 import { buildSessionPlan, type PrescribeOptions } from './prescribe';
 import { BARBELL_LIFTS, liftLabel } from './programAccess';
@@ -90,6 +90,11 @@ export function triggers(input: EngineInput): Suggestion[] {
 
 export function nextLiftingDate(input: EngineInput, from: LocalDate): LocalDate | null {
   return findNextLiftingDate(input, from);
+}
+
+/** "Do yesterday's workout today" (RULES.md section 1, Q26): what moving yesterday's missed lifting to today would do, or null. */
+export function yesterdayMove(input: EngineInput): YesterdayMove | null {
+  return findYesterdayMove(input);
 }
 
 /** Section 4: a smaller jump than the suggestion, down to a repeat, never a larger one. */

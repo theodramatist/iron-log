@@ -134,6 +134,9 @@ describe('Data: the event store, drafts, and backups', () => {
     const cond = (f: Record<string, unknown>) => (f.events as AnyEvent[]).find((e) => e.type === 'conditioningSession') as unknown as Record<string, unknown>;
     expect(bad((f) => (cond(f).extra = 'yes'))).toMatchObject({ ok: false });
     expect(bad((f) => (skip(f).reason = 'tired'))).toMatchObject({ ok: false });
+    // "Do yesterday's workout today" (Q26) moves lifting only.
+    expect(bad((f) => (skip(f).reason = 'moved'))).toMatchObject({ ok: false });
+    expect(bad((f) => Object.assign(skip(f), { kind: 'lifting', reason: 'moved' }))).toMatchObject({ ok: true });
     expect(bad((f) => (skip(f).kind = 'rest'))).toMatchObject({ ok: false });
     expect(bad((f) => (lifting(f).lifts[0]!.sets = [{ weight: '95', reps: 5 }] as never))).toMatchObject({ ok: false });
     expect(bad((f) => (f.events = (f.events as AnyEvent[]).filter((e) => e.type !== 'setup')))).toMatchObject({
