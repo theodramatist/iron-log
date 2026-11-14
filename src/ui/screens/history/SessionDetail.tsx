@@ -7,6 +7,7 @@ import {
   effectiveSettings,
   inventoryFrom,
   largestLoadableAtOrBelow,
+  READINGS,
   smallestLoadableAbove,
   type AssistMovementLog,
   type AssistMovementPlan,
@@ -155,7 +156,9 @@ function LiftingSummary(props: { ev: LiftingSessionEvent }) {
 }
 
 function ConditioningSummary(props: { ev: ConditioningSessionEvent }) {
+  const { program } = useApp();
   const { ev } = props;
+  const extraCounts = READINGS.EXTRA_MINUTES_COUNT_TOWARD_CONDITIONING_WEEKS && ev.actualMinutes >= program.conditioning.minimumSessionMin;
   return (
     <ul class="lines plain">
       <li>
@@ -167,7 +170,11 @@ function ConditioningSummary(props: { ev: ConditioningSessionEvent }) {
         </li>
       )}
       <li class="small muted">
-        {ev.extra ? 'Extra easy minutes: they count toward the weekly bar only.' : `Conditioning week ${ev.conditioningWeek}, phase ${ev.phase}`}
+        {ev.extra
+          ? extraCounts
+            ? "Extra easy minutes: they count toward the weekly bar and as one of the week's two conditioning sessions."
+            : 'Extra easy minutes: they count toward the weekly bar only.'
+          : `Conditioning week ${ev.conditioningWeek}, phase ${ev.phase}`}
         {!ev.extra && ev.shortNight ? ' · last night under 6 hours' : ''}
       </li>
     </ul>

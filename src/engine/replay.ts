@@ -507,21 +507,26 @@ function processAssist(st: EngineState, ev: LiftingSessionEvent): void {
 
 // ------------------------------------------------------------ conditioning
 
+/** A completed session toward its week's two (section 8): it moves the conditioning week and resets the layoff clock. */
+function countTowardConditioningWeek(st: EngineState, date: LocalDate): void {
+  st.cond = condLayoff(st, st.cond, date).cond;
+  st.cond.lastCountedDate = date;
+  const ws = weekStart(date);
+  st.condCountedByWeek.set(ws, (st.condCountedByWeek.get(ws) ?? 0) + 1);
+}
+
 function processConditioningSession(st: EngineState, ev: ConditioningSessionEvent): void {
   if (ev.stopped) return;
-  // Extra easy minutes (section 8, Q24): the weekly bar, and nothing else.
+  st.cond = advanceCond(st, st.cond, weekStart(ev.date));
+  const counted = ev.actualMinutes >= st.program.conditioning.minimumSessionMin;
+  // Extra easy minutes (section 8, Q24) add to the weekly bar. A ride of 20 minutes or more also counts
+  // toward the conditioning week and the layoff rule (Q27), but never toward the caps, intervals, or food lines.
   if (ev.extra && READINGS.EXTRA_MINUTES_COUNT_ONLY_TOWARD_BAR) {
+    if (counted && READINGS.EXTRA_MINUTES_COUNT_TOWARD_CONDITIONING_WEEKS) countTowardConditioningWeek(st, ev.date);
     st.condSessions.push({ event: ev, date: ev.date, minutes: ev.actualMinutes, counted: false, intervalsDone: 0, phase: ev.phase });
     return;
   }
-  st.cond = advanceCond(st, st.cond, weekStart(ev.date));
-  const counted = ev.actualMinutes >= st.program.conditioning.minimumSessionMin;
-  if (counted) {
-    st.cond = condLayoff(st, st.cond, ev.date).cond;
-    st.cond.lastCountedDate = ev.date;
-    const ws = weekStart(ev.date);
-    st.condCountedByWeek.set(ws, (st.condCountedByWeek.get(ws) ?? 0) + 1);
-  }
+  if (counted) countTowardConditioningWeek(st, ev.date);
   st.condSessions.push({
     event: ev,
     date: ev.date,

@@ -87,7 +87,7 @@ Six short steps, each one screen, with Back and Next:
 - **Banners,** at most two visible, in priority order: pain check, light-week suggestion, food-lever question, graduation, early-stall note, maintenance break, export reminder.
 - **Week strip:** Monday through Friday with done, planned, missed, and off states.
 - **Conditioning bar:** minutes this week against 150.
-- **Extra easy minutes:** a "Log extra easy minutes" button on any day opens the conditioning timer for easy minutes only, with no check-in or intervals. On a lifting day it says to do them after lifting. They add to the bar only (RULES.md section 8).
+- **Extra easy minutes:** a "Log extra easy minutes" button on any day opens the conditioning timer for easy minutes only, with no check-in or intervals. On a lifting day it says to do them after lifting. They add to the bar, and a ride of 20 minutes or more also counts as one of the week's two conditioning sessions, though Tuesday's and Thursday's stay planned (RULES.md section 8).
 - **Food line:** the day's nutrition prompt from RULES.md section 13.
 
 ### 5.3 Lifting session

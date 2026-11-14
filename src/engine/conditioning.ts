@@ -8,7 +8,7 @@ import { READINGS } from './readings';
 import type { CondState, EngineState } from './state';
 import type { EquipmentDown, LocalDate } from './types';
 
-/** A calendar week counts when both sessions were completed and it was neither a light nor a floor week. */
+/** A calendar week counts when two sessions of 20 minutes or more were completed, on any days and extra rides included (Q27), and it was neither a light nor a floor week. */
 export function weekCounted(st: EngineState, ws: LocalDate): boolean {
   const done = st.condCountedByWeek.get(ws) ?? 0;
   return done >= st.program.schedule.maxConditioningSessionsPerWeek && weekKind(st, ws) === 'normal';

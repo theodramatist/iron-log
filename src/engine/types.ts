@@ -170,7 +170,7 @@ export interface ConditioningSessionEvent extends BaseEvent {
   intervalsDone: number;
   notes?: string;
   stopped?: boolean;
-  /** Extra easy minutes (RULES.md section 8, Q24): they count toward the weekly bar and nothing else. */
+  /** Extra easy minutes (RULES.md section 8, Q24 and Q27): the weekly bar, and at 20 minutes or more the conditioning week, but never a planned session. */
   extra?: boolean;
 }
 

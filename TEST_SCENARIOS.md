@@ -143,7 +143,7 @@ Unless a scenario gives a date, assume program week 10 or later and no maintenan
 
 **T105 · Extra minutes on a lifting day (§8).** Given 11-02 A and 20 minutes of conditioning on Tuesday 11-03. When Wednesday 11-04's lifting is done and 25 extra easy minutes follow. Then the week shows 45 minutes and still one conditioning session, Thursday 11-05 is still conditioning, and Wednesday's food line is the lifting day's alone.
 
-**T106 · Extra minutes don't fill a conditioning week (§8).** Given only Tuesday's session in the week of 11-02, plus 30 extra minutes on Wednesday and Friday. Then Tuesday 11-10 is still conditioning week 1. With Thursday's session done as well, it would be week 2.
+**T106 · Extra minutes toward a conditioning week (§8).** Given Tuesday 11-03's session and 30 extra minutes after Wednesday's lifting. Then Thursday 11-05 is still a conditioning day, the week shows one conditioning session, and Tuesday 11-10 is conditioning week 2. Given instead 25 and 40 extra minutes after Monday's and Wednesday's lifting and nothing on Tuesday or Thursday, 11-10 is week 2 as well. Extra minutes under 20 don't count: Tuesday's session plus 15 extra minutes leaves 11-10 at week 1. A 30-minute extra ride on 11-20 also counts for the layoff rule, so after the week of 11-02's two sessions, Tuesday 12-08 stays at week 2 instead of dropping to week 1.
 
 **T107 · Extra minutes before lifting (§1, §8).** Given Wednesday 11-04 planned for lifting. When 15 extra minutes are logged first. Then Wednesday is still planned lifting, Workout B, and the minutes count. A "No time today" skip on that day still moves the week.
 

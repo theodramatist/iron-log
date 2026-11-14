@@ -2,7 +2,7 @@
 // the screening gate before the first intervals, a segmented timer, and Finish.
 
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
-import { planFor, type ConditioningPlan } from '../../engine';
+import { planFor, READINGS, type ConditioningPlan } from '../../engine';
 import { alertNow } from '../alerts';
 import { BackupNow } from '../BackupNow';
 import { nowIso } from '../clock';
@@ -253,9 +253,11 @@ function ExtraSetup(props: { plan: ConditioningPlan; d: ConditioningDraft; updat
   const { plan, d, update } = props;
   const day = useMemo(() => planFor(input, d.date), [input, d.date]);
   const liftingFirst = day.kind === 'lifting' && day.status !== 'done';
+  const minimum = program.conditioning.minimumSessionMin;
+  const countsAsSession = READINGS.EXTRA_MINUTES_COUNT_TOWARD_CONDITIONING_WEEKS && plan.targetMinutes >= minimum;
   return (
     <>
-      <div class="eyebrow">Weekly minutes only</div>
+      <div class="eyebrow">Easy only</div>
       <h1>Extra easy minutes</h1>
       {liftingFirst && <p class="note info">On a lifting day, these come after lifting, never before.</p>}
       <div class="card">
@@ -268,7 +270,9 @@ function ExtraSetup(props: { plan: ConditioningPlan; d: ConditioningDraft; updat
           </li>
         </ul>
         <p class="small muted">
-          These add to this week's minutes. They aren't one of the week's two conditioning sessions, so they don't move your conditioning week or phase.
+          {countsAsSession
+            ? `These add to this week's minutes, and ${minimum} minutes or more counts as one of the week's two conditioning sessions. Tuesday and Thursday stay on the plan either way.`
+            : `These add to this week's minutes. Under ${minimum} minutes, they don't count as one of the week's two conditioning sessions.`}
         </p>
       </div>
       <button type="button" class="btn btn-primary" onClick={props.onBegin}>

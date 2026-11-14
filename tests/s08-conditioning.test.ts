@@ -168,11 +168,24 @@ describe('§8 Conditioning', () => {
     expect(wednesday.foodLines).toEqual(lifting);
   });
 
-  it("T106 Extra minutes don't fill a conditioning week", () => {
-    const log = buildLog().cond('2026-11-03').extra('2026-11-04', 30).extra('2026-11-06', 30);
-    expect(log.cplan('2026-11-10').conditioningWeek).toBe(1);
+  it('T106 Extra minutes toward a conditioning week', () => {
+    const log = buildLog().cond('2026-11-03').lift('2026-11-04').extra('2026-11-04', 30);
+    expect(log.day('2026-11-05', '2026-11-04').kind).toBe('conditioning');
     expect(log.week('2026-11-02', '2026-11-08')).toMatchObject({ conditioningDone: 1 });
-    expect(buildLog().condWeek('2026-11-02').cplan('2026-11-10').conditioningWeek).toBe(2);
+    expect(log.cplan('2026-11-10').conditioningWeek).toBe(2);
+
+    // Rides after lifting only, nothing on Tuesday or Thursday.
+    const extrasOnly = buildLog().extra('2026-11-02', 25).lift('2026-11-04').extra('2026-11-04', 40);
+    expect(extrasOnly.day('2026-11-05', '2026-11-04').kind).toBe('conditioning');
+    expect(extrasOnly.cplan('2026-11-10').conditioningWeek).toBe(2);
+
+    // Under 20 minutes adds to the bar but isn't a session.
+    const short = buildLog().cond('2026-11-03').extra('2026-11-04', 15);
+    expect(short.cplan('2026-11-10').conditioningWeek).toBe(1);
+
+    // A ride of 20 minutes or more keeps the layoff rule from dropping a phase.
+    expect(buildLog().condWeek('2026-11-02').cplan('2026-12-08').conditioningWeek).toBe(1);
+    expect(buildLog().condWeek('2026-11-02').extra('2026-11-20', 30).cplan('2026-12-08').conditioningWeek).toBe(2);
   });
 
   it('T107 Extra minutes before lifting', () => {
