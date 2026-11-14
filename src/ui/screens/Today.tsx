@@ -66,7 +66,7 @@ export function Today(props: { onStart: (route: SessionRoute) => void }) {
     }
   };
 
-  // Extra easy minutes (RULES.md section 8, Q24): the conditioning timer, easy only, counted toward the weekly bar.
+  // Extra easy minutes (RULES.md section 8, Q24 and Q27): the conditioning timer, easy only, for the weekly bar and the conditioning week.
   const beginExtra = async () => {
     unlockAudio();
     const draft = newConditioningDraft(today, false, true);

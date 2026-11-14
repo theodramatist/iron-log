@@ -1,6 +1,6 @@
 // Readings of RULES.md where it was ambiguous (CLAUDE.md, ground rule 1).
 // The owner decided Q1 through Q21 on 2026-11-03, asked for Q22 and Q23 on
-// 2026-11-04, Q24 on 2026-11-09, and Q26 on 2026-11-14. Each decision is an [app rule]
+// 2026-11-04, Q24 on 2026-11-09, and Q26 and Q27 on 2026-11-14. Each decision is an [app rule]
 // in the RULES.md section named, and its number matches QUESTIONS.md. New
 // questions get a constant here and an entry there.
 
@@ -72,11 +72,14 @@ export const READINGS = {
   /** Q23 (section 14): the rest timer can take how many reps were left on the set just logged, and a short set starts the missed rest. */
   REST_FROM_SET_JUST_DONE: true,
 
-  /** Q24 (section 8, T105 to T107): extra easy minutes count toward the weekly bar and nothing else. */
+  /** Q24 (section 8, T105 to T107): extra easy minutes count toward the weekly bar, never as a planned session. Q27 widens what they count toward. */
   EXTRA_MINUTES_COUNT_ONLY_TOWARD_BAR: true,
 
   /** Q26 (section 1, T108): the day after lifting is missed with nothing logged, it can move to that day, and the rest of the week with it. */
   MISSED_LIFTING_MOVES_TO_NEXT_DAY: true,
+
+  /** Q27 (section 8, T106): an extra ride of 20 minutes or more counts as one of the week's two conditioning sessions for conditioning weeks and the layoff rule. */
+  EXTRA_MINUTES_COUNT_TOWARD_CONDITIONING_WEEKS: true,
 
   /** Q18 (section 14): time projection estimates, in seconds. */
   BIKE_WARMUP_SEC: 300,

@@ -205,7 +205,7 @@ WEIGHTED (3 sets of 5 with a belt)
 
 ## 8. Conditioning
 
-- **Counting weeks [app rule].** `conditioningWeek` = 1 + the number of earlier calendar weeks in which both conditioning sessions were completed and that were neither light weeks nor floor weeks. The phase comes from this count, not from the calendar, so missed weeks never push him into harder work.
+- **Counting weeks [app rule].** `conditioningWeek` = 1 + the number of earlier calendar weeks in which two conditioning sessions were completed, on any days, and that were neither light weeks nor floor weeks. An extra ride of 20 minutes or more counts as one of the two (Q27). The phase comes from this count, not from the calendar, so missed weeks never push him into harder work.
 
 | Phase | Conditioning weeks | Tuesday | Thursday | After lifting |
 | --- | --- | --- | --- | --- |
@@ -225,7 +225,7 @@ WEIGHTED (3 sets of 5 with a belt)
 - **Floor week:** no conditioning.
 - **Layoff [app rule].** If the last completed conditioning session was more than 21 days ago, drop one phase, to the first week of the lower phase. More than 60 days, go back to conditioning week 1.
 - **Weekly bar.** Conditioning minutes this calendar week (sessions plus after-lifting spins) against the 150-minute guideline. Sessions under 20 minutes still add their minutes. **[app rule]**
-- **Extra easy minutes [app rule].** He can log extra easy conditioning on any day, on a lifting day after lifting, never before. Extra minutes count toward the weekly bar and nothing else: they aren't one of the week's two conditioning sessions, so they don't count toward conditioning weeks, phases, caps, intervals, the layoff rule, or food prompts. They never mark a day done or cancel a "No time today" skip (section 1). The app logs them when he chooses and never suggests them.
+- **Extra easy minutes [app rule].** He can log extra easy conditioning on any day, on a lifting day after lifting, never before. Extra minutes count toward the weekly bar. A ride of 20 minutes or more also counts as one of the week's two sessions for conditioning weeks, and so phases, and for the layoff rule (Q27). Extra minutes never count toward the week's caps, intervals, or food prompts, so Tuesday's and Thursday's sessions stay planned. They never mark a day done or cancel a "No time today" skip (section 1). The app logs them when he chooses and never suggests them.
 - Never offer extra sessions to make up for missed ones or for food.
 
 ## 9. Warm-ups and calibration

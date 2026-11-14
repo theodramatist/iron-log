@@ -22,7 +22,7 @@ export interface ConditioningDraft {
   past: boolean;
   /** Left unfinished on an earlier day and reopened as a past entry. */
   fromEarlierDay?: boolean;
-  /** Extra easy minutes (RULES.md section 8, Q24): no check-in and no intervals, and they count toward the weekly bar only. */
+  /** Extra easy minutes (RULES.md section 8, Q24 and Q27): no check-in and no intervals. They add to the weekly bar, and 20 minutes or more counts toward the conditioning week. */
   extra?: boolean;
   step: 'checkIn' | 'setup' | 'running' | 'finish';
   shortNight: boolean | null;
