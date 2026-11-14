@@ -46,10 +46,10 @@ export function Today(props: { onStart: (route: SessionRoute) => void }) {
   const [moving, setMoving] = useState(false);
   const movedFrom = useMemo(() => {
     const yesterday = addDays(today, -1);
-    if (day.kind !== 'lifting' || weekStart(yesterday) !== weekStart(today)) return null;
+    if (day.kind !== 'lifting' || day.status === 'skipped' || weekStart(yesterday) !== weekStart(today)) return null;
     const y = planFor(input, yesterday);
     return y.kind === 'lifting' && y.status === 'skipped' && y.skipReason === 'moved' ? y : null;
-  }, [input, today, day.kind]);
+  }, [input, today, day.kind, day.status]);
   const stoppedToday = repo.events().some((e) => (e.type === 'liftingSession' || e.type === 'conditioningSession') && e.stopped && e.date === today);
 
   const begin = async (kind: 'lifting' | 'conditioning', date: LocalDate, isPast: boolean) => {
