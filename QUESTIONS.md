@@ -8,7 +8,7 @@ None.
 
 ## Answered
 
-The owner accepted every recommendation on 2026-11-03: keep 16 readings as they were, and change Q8 and Q13. Q19 came up while building the screens, and Q20 and Q21 came from the M3 audit (`docs/AUDIT-M3.md`). All three were answered the same day. Q22 and Q23 are features the owner asked for after launch, on 2026-11-04, and Q24 and Q25 followed on 2026-11-09.
+The owner accepted every recommendation on 2026-11-03: keep 16 readings as they were, and change Q8 and Q13. Q19 came up while building the screens, and Q20 and Q21 came from the M3 audit (`docs/AUDIT-M3.md`). All three were answered the same day. Q22 and Q23 are features the owner asked for after launch, on 2026-11-04, Q24 and Q25 followed on 2026-11-09, and Q26 on 2026-11-14.
 
 | # | Question | RULES.md | Decision |
 | --- | --- | --- | --- |
@@ -37,3 +37,4 @@ The owner accepted every recommendation on 2026-11-03: keep 16 readings as they 
 | Q23 | A rest timer that lags a session behind | §14 | **New, at the owner's request:** the timer asks how many reps were left on the set just logged and resets that rest from the §14 table, so a set that turns hard gets 3:30 or 5:00 at once instead of next session. A short set starts the missed rest. After the last work set, the answer fills in an empty effort rating. It changes rest only. |
 | Q24 | Conditioning minutes on lifting days | §8 | **New, at the owner's request:** he can log extra easy minutes on any day, after lifting on lifting days, so the weekly bar can reach 150. They count toward the bar only, not as one of the week's two conditioning sessions, so the protocol's slow ramp of conditioning weeks and phases is unchanged (T105–T107). |
 | Q25 | Automatic backups | SPEC §8 | **New, at the owner's request:** both a one-tap "Back up now" to iCloud Drive on a session's last screen when the last copy is a week old, and an automatic backup to a private GitHub repository he owns, after every change. The backup file is the one thing that may leave the phone, and only there. The token stays on the phone, out of exported files (CLAUDE.md, repo instruction 11). |
+| Q26 | A missed day he wants to do the next day | §1 | **New, at the owner's request:** when yesterday's lifting was missed with nothing logged, Today offers "Do yesterday's workout today." It records yesterday as a "No time today" skip after the fact and moves the week the same way, so conditioning isn't dropped and a missed Friday can be done on Saturday (T108). In the same request, a logged session's Edit screen can now add a lift that shows "Not reached," or chins and dips with nothing logged, at that day's prescription (§17, T109). |

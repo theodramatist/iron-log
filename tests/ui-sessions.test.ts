@@ -51,7 +51,8 @@ import {
   toConditioningEvent,
   type ConditioningDraft,
 } from '../src/ui/session/conditioning';
-import { PROGRAM, buildLog, calibrate, cd, made, type Log } from './helpers/log';
+import { addableAssist, addableLifts, addedAssist, addedLift } from '../src/ui/session/forgotten';
+import { PROGRAM, buildLog, calibrate, cd, made, notReached, type Log } from './helpers/log';
 
 const T0 = '2026-11-04T17:00:00.000Z';
 const at = (min: number) => new Date(Date.parse(T0) + min * 60_000).toISOString();
@@ -257,5 +258,52 @@ describe('Session drafts', () => {
     e = startTimer(tapSet(e, squat(), 0), 'Squat', squat().restSec, T0, 'squat');
     expect(restAfterMiss(toggleFormBroke(e, squat(), 0), squat(), PROGRAM).timer?.durationSec).toBe(300);
     expect(restAfterMiss(lowerReps(e, squat(), 0), squat(), PROGRAM).timer).toMatchObject({ durationSec: 300, startedAt: T0 });
+  });
+});
+
+describe('Editing a logged session', () => {
+  it('T109 A lift added afterward', () => {
+    const log = buildLog().lift('2026-11-04', { squat: made('rir3to4'), deadlift: notReached() });
+    const ev = log.sessionOn('2026-11-04');
+    const dl = ev.lifts.find((l) => l.lift === 'deadlift')!;
+    expect(addableLifts(ev).map((l) => l.lift)).toEqual(['deadlift']);
+    expect(log.liftPlan('2026-11-06', 'deadlift').weight).toBe(dl.prescription.weight);
+
+    const added = addedLift(dl);
+    expect(added.notReached).toBeUndefined();
+    expect(added.effort).toBeUndefined();
+    expect(added.sets).toEqual(Array.from({ length: dl.prescription.sets }, () => ({ weight: dl.prescription.weight, reps: dl.prescription.reps })));
+    log.edit(ev, (e) => {
+      e.lifts = e.lifts.map((l) => (l.lift === 'deadlift' ? { ...added, effort: 'rir3to4' as const } : l));
+    });
+    expect(log.liftPlan('2026-11-06', 'deadlift').weight).toBe(dl.prescription.weight + PROGRAM.jumpTableLb.deadlift.rir3to4);
+    expect(addableLifts(log.sessionOn('2026-11-04'))).toEqual([]);
+  });
+
+  it("T109 a calibration never reached can't be added", () => {
+    const log = buildLog().lift('2026-11-04', { squat: made('rir3to4'), bench: notReached() });
+    const bench = log.sessionOn('2026-11-04').lifts.find((l) => l.lift === 'bench')!;
+    expect(bench).toMatchObject({ notReached: true, prescription: { kind: 'calibration' } });
+    expect(addableLifts(log.sessionOn('2026-11-04'))).toEqual([]);
+  });
+
+  it('T109 chins added afterward progress as if logged that day', () => {
+    const log = buildLog().lift('2026-11-04', { squat: made('rir3to4') });
+    const ev = log.sessionOn('2026-11-04');
+    expect(ev.assist).toBeUndefined();
+    // Dips calibrate at this session, so they wait for the next one instead.
+    const addable = addableAssist(log.input('2026-11-14'), ev);
+    expect(addable.map((m) => m.lift)).toEqual(['chin']);
+    const chin = addedAssist(addable[0]!);
+    const before = log.assist('chin');
+    log.edit(ev, (e) => {
+      e.assist = { chin: { ...chin, spare: 1 } };
+    });
+
+    const logged = buildLog().lift('2026-11-04', { squat: made('rir3to4'), chin: cd.made(1) });
+    expect(before).not.toEqual(logged.assist('chin'));
+    expect(log.assist('chin')).toEqual(logged.assist('chin'));
+    expect(log.plan('2026-11-06').assist?.chin).toEqual(logged.plan('2026-11-06').assist?.chin);
+    expect(addableAssist(log.input('2026-11-14'), log.sessionOn('2026-11-04'))).toEqual([]);
   });
 });

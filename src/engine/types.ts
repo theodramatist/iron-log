@@ -254,11 +254,16 @@ export interface OverrideEvent extends BaseEvent {
   reason: string;
 }
 
-/** "No time today" (RULES.md section 1, Q22): the day's planned session, skipped for lack of time. */
+/**
+ * A planned session not done on its day (RULES.md section 1). `time`: "No
+ * time today," on the day (Q22). `moved`: the next day, "Do yesterday's
+ * workout today," for lifting missed with nothing logged (Q26). Either way, a
+ * skipped lifting session moves the rest of its week a day.
+ */
 export interface SkipEvent extends BaseEvent {
   type: 'skip';
   kind: 'lifting' | 'conditioning';
-  reason: 'time';
+  reason: 'time' | 'moved';
 }
 
 export type AnyEvent =

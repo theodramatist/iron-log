@@ -284,7 +284,7 @@ export function applyEvent(st: EngineState, ev: AnyEvent): void {
     case 'override':
       return applyOverride(st, ev);
     case 'skip':
-      st.skips.push({ id: ev.id, date: ev.date, kind: ev.kind });
+      st.skips.push({ id: ev.id, date: ev.date, kind: ev.kind, reason: ev.reason });
       return;
   }
 }

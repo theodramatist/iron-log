@@ -3,7 +3,7 @@
 import { insideBreak, sickOn, weekKind, weekTypeOn } from './calendar';
 import { conditioningPlan } from './conditioning';
 import { addDays, programWeek, weekdayIndex, weekdayName, weekStart } from './dates';
-import type { Banner, DayPlan, WeekSummary } from './planTypes';
+import type { Banner, DayPlan, WeekSummary, YesterdayMove } from './planTypes';
 import { formatLb } from './plates';
 import { buildSessionPlan } from './prescribe';
 import { BARBELL_LIFTS, liftNoun } from './programAccess';
@@ -11,7 +11,7 @@ import { READINGS } from './readings';
 import { replay, replayEach } from './replay';
 import { skipOn, slotSource } from './schedule';
 import type { EngineState } from './state';
-import type { EngineInput, LocalDate, PrescriptionKind, SuggestionKind, Workout } from './types';
+import type { EngineInput, LocalDate, PrescriptionKind, SkipEvent, SuggestionKind, Workout } from './types';
 
 const SUGGESTION_ORDER: SuggestionKind[] = ['lightWeek', 'foodLever', 'graduation', 'earlyStall'];
 
@@ -54,6 +54,7 @@ export function dayPlan(input: EngineInput, st: EngineState, date: LocalDate): D
     status: 'off',
     swapTo: null,
     skipId: null,
+    skipReason: null,
     needsConsecutiveConfirm: false,
     workout: null,
     summary: [],
@@ -102,7 +103,10 @@ export function dayPlan(input: EngineInput, st: EngineState, date: LocalDate): D
 
   // "No time today" (section 1): the skipped day, then the day of the default week whose session lands here.
   const skip = skipOn(st, date);
-  if (skip) return { ...base, kind: skip.kind, status: 'skipped', skipId: skip.id, message: 'Skipped: no time.' };
+  if (skip) {
+    const message = skip.reason === 'moved' ? 'Moved to the next day.' : 'Skipped: no time.';
+    return { ...base, kind: skip.kind, status: 'skipped', skipId: skip.id, skipReason: skip.reason, message };
+  }
   const source = slotSource(st, date);
   if (source === null) return { ...base, message: 'Off.' };
   if (sickOn(st, date)) return { ...base, kind: 'sick', message: program.illness.sickModeMessage };
@@ -231,6 +235,30 @@ function projectAlternation(days: DayPlan[], today: LocalDate): void {
     d.summary = [];
     d.projected = true;
   }
+}
+
+/**
+ * "Do yesterday's workout today" (section 1, Q26). Yesterday's lifting was
+ * missed with nothing logged, in this calendar week, and today has nothing
+ * planned that it would push aside: a conditioning day not yet done, or a
+ * day off. Moving it is a skip dated yesterday, so the week moves a day just
+ * as "No time today" moves it, Saturday and Sunday included. Null when there
+ * is nothing to offer, or the move wouldn't put lifting on today.
+ */
+export function findYesterdayMove(input: EngineInput): YesterdayMove | null {
+  if (!READINGS.MISSED_LIFTING_MOVES_TO_NEXT_DAY) return null;
+  const today = input.today;
+  const yesterday = addDays(today, -1);
+  if (weekStart(yesterday) !== weekStart(today)) return null;
+  const missed = planForDate(input, yesterday);
+  if (missed.kind !== 'lifting' || missed.status !== 'missed') return null;
+  const now = planForDate(input, today);
+  if (!(now.kind === 'off' || (now.kind === 'conditioning' && now.status === 'planned'))) return null;
+  const skip: SkipEvent = { id: 'yesterday-move', type: 'skip', date: yesterday, kind: 'lifting', reason: 'moved', createdAt: '', updatedAt: '' };
+  const moved = summarizeWeek({ ...input, events: [...input.events, skip] }, weekStart(today));
+  const after = moved.days.filter((d) => d.date >= today && (d.kind === 'lifting' || d.kind === 'conditioning') && d.status === 'planned');
+  if (after[0]?.date !== today || after[0].kind !== 'lifting') return null;
+  return { missed, after };
 }
 
 export function findNextLiftingDate(input: EngineInput, from: LocalDate): LocalDate | null {

@@ -36,6 +36,7 @@ liftStates(input): Record<LiftId, LiftState>       // stage, lcw, next, flags, h
 conditioningState(input, date): ConditioningPlan   // week, phase, target, interval layout
 weekSummary(input, weekStart): WeekSummary         // sessions, minutes, week type, banners
 triggers(input): Suggestion[]            // light week, food lever, early-stall note, graduation
+yesterdayMove(input): YesterdayMove | null         // yesterday's missed lifting, moved to today (Q26)
 ```
 
 Session screens build a draft session in memory and save it as one event when finished, so a half-logged session never changes the plan. A draft survives the app being closed (kept in IndexedDB as a draft, not as an event).
@@ -59,7 +60,7 @@ Every event has `id`, `type`, `date` (local date), `createdAt`, and `updatedAt`.
 | `painCleared` | lift, how (`gone` or `clinician`) |
 | `suggestionDismissed` | suggestion kind |
 | `override` | lift, field, value, reason |
-| `skip` | kind (`lifting` or `conditioning`), reason (`time`): "No time today" (RULES.md section 1) |
+| `skip` | kind (`lifting` or `conditioning`), reason: `time` for "No time today," or `moved` for lifting missed and moved to the next day (RULES.md section 1) |
 
 Export format: `{ "app": "iron-log", "schemaVersion": 1, "programVersion": "2026-11-02", "exportedAt": "...", "settings": {...}, "events": [...] }`. Import validates the shape and the schema version, shows a count of events, and replaces all data only after a confirmation.
 
@@ -82,7 +83,7 @@ Six short steps, each one screen, with Back and Next:
 
 - Header: the date, program week, and conditioning phase.
 - **Session card:** today's plan. Lifting shows the workout letter and each lift with its work weight and sets ("Squat 3×5 · 115"). Conditioning shows target minutes and intervals. A floor or light week says so. Off days say "Off."
-- **Buttons:** Start session, Swap today, and a small "Something came up" menu (no time today, declare illness, overloaded week, or floor week). "No time today" shows how the rest of the week moves before it's confirmed, and a skipped day offers Undo (RULES.md section 1). A Saturday holding a moved lifting session also offers "Move it to Sunday." In sick mode the session card shows the rest message from RULES.md section 10 and an "I'm better" button, and nothing can be started.
+- **Buttons:** Start session, Swap today, and a small "Something came up" menu (no time today, declare illness, overloaded week, or floor week). "No time today" shows how the rest of the week moves before it's confirmed, and a skipped day offers Undo (RULES.md section 1). A Saturday holding a moved lifting session also offers "Move it to Sunday." When yesterday's lifting was missed and nothing was logged, Today offers "Do yesterday's workout today," which moves the week the same way (RULES.md section 1). In sick mode the session card shows the rest message from RULES.md section 10 and an "I'm better" button, and nothing can be started.
 - **Banners,** at most two visible, in priority order: pain check, light-week suggestion, food-lever question, graduation, early-stall note, maintenance break, export reminder.
 - **Week strip:** Monday through Friday with done, planned, missed, and off states.
 - **Conditioning bar:** minutes this week against 150.
@@ -118,7 +119,7 @@ Six short steps, each one screen, with Back and Next:
 
 ### 5.5 Week
 
-Monday through Sunday for the current week, with arrows for other weeks. Each day shows its plan or what was logged, the week type, and any calendar note from `program.json`. Tapping a logged day opens the session to view or edit. Editing a past session warns that later prescriptions will be recalculated.
+Monday through Sunday for the current week, with arrows for other weeks. Each day shows its plan or what was logged, the week type, and any calendar note from `program.json`. Tapping a logged day opens the session to view or edit. Editing a past session warns that later prescriptions will be recalculated. The editor can also add a lift that shows "Not reached," or chins and dips with nothing logged, at that day's prescription (RULES.md section 17). A day moved with "Do yesterday's workout today" shows as Moved.
 
 ### 5.6 Progress
 

@@ -54,6 +54,7 @@ export {
   programState,
   triggers,
   weekSummary,
+  yesterdayMove,
   type FloorWeekView,
   type LiftStateView,
   type PrescribeOptions,

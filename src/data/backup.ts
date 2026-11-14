@@ -130,7 +130,7 @@ function payloadOk(e: Obj): boolean {
     case 'override':
       return LIFTS.includes(e.lift as string) && isStr(e.field) && isNum(e.value);
     case 'skip':
-      return (e.kind === 'lifting' || e.kind === 'conditioning') && e.reason === 'time';
+      return (e.kind === 'lifting' || e.kind === 'conditioning') && (e.reason === 'time' || (e.reason === 'moved' && e.kind === 'lifting'));
   }
 }
 

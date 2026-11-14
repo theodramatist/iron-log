@@ -1,6 +1,6 @@
 // RULES.md section 1: scheduling.
 import { describe, expect, it } from 'vitest';
-import { prescribe, type LiftingSessionEvent } from '../src/engine';
+import { prescribe, yesterdayMove, type LiftingSessionEvent } from '../src/engine';
 import { PROGRAM, buildLog, calibrate, made } from './helpers/log';
 
 const sessions = (events: { type: string }[]) =>
@@ -189,6 +189,55 @@ describe('§1 Scheduling', () => {
     const dropped = base().skip('2026-11-07', 'lifting').skip('2026-11-08', 'lifting');
     expect(dropped.day('2026-11-08', '2026-11-08')).toMatchObject({ kind: 'lifting', status: 'skipped' });
     expect(dropped.day('2026-11-09', '2026-11-09')).toMatchObject({ kind: 'lifting', workout: 'A', needsConsecutiveConfirm: false });
+  });
+
+  it("T108 Yesterday's workout today", () => {
+    const log = buildLog().cond('2026-11-03');
+    expect(log.day('2026-11-04', '2026-11-05')).toMatchObject({ kind: 'lifting', status: 'missed' });
+    expect(log.day('2026-11-05', '2026-11-05')).toMatchObject({ kind: 'conditioning', status: 'planned' });
+    const offer = yesterdayMove(log.input('2026-11-05'));
+    expect(offer?.missed.date).toBe('2026-11-04');
+    expect(offer?.after.map((d) => [d.date, d.kind, d.workout])).toEqual([
+      ['2026-11-05', 'lifting', 'B'],
+      ['2026-11-06', 'conditioning', null],
+      ['2026-11-07', 'lifting', 'A'],
+    ]);
+
+    log.skip('2026-11-04', 'lifting', 'moved');
+    expect(yesterdayMove(log.input('2026-11-05'))).toBeNull();
+    expect(log.day('2026-11-04', '2026-11-05')).toMatchObject({ status: 'skipped', skipReason: 'moved', message: 'Moved to the next day.' });
+    expect(log.week('2026-11-02', '2026-11-05').days.map((d) => [d.date, d.kind, d.status, d.workout])).toEqual([
+      ['2026-11-02', 'lifting', 'done', 'A'],
+      ['2026-11-03', 'conditioning', 'done', null],
+      ['2026-11-04', 'lifting', 'skipped', null],
+      ['2026-11-05', 'lifting', 'planned', 'B'],
+      ['2026-11-06', 'conditioning', 'planned', null],
+      ['2026-11-07', 'lifting', 'planned', 'A'],
+      ['2026-11-08', 'off', 'off', null],
+    ]);
+
+    // Friday missed after Wednesday's B: Saturday is off until Friday's session moves to it.
+    const friday = buildLog().cond('2026-11-03').lift('2026-11-04').cond('2026-11-05');
+    expect(friday.day('2026-11-07', '2026-11-07')).toMatchObject({ kind: 'off' });
+    expect(yesterdayMove(friday.input('2026-11-07'))?.after.map((d) => [d.date, d.workout])).toEqual([['2026-11-07', 'A']]);
+    friday.skip('2026-11-06', 'lifting', 'moved');
+    expect(friday.day('2026-11-07', '2026-11-07')).toMatchObject({ kind: 'lifting', status: 'planned', workout: 'A' });
+  });
+
+  it('T108 Saturday into Sunday, and never into the next week or over a session', () => {
+    // Friday moved to Saturday with "No time today," then Saturday missed: Sunday can take it.
+    const log = buildLog().cond('2026-11-03').lift('2026-11-04').cond('2026-11-05').skip('2026-11-06', 'lifting');
+    expect(log.day('2026-11-07', '2026-11-08')).toMatchObject({ kind: 'lifting', status: 'missed' });
+    expect(yesterdayMove(log.input('2026-11-08'))?.after.map((d) => [d.date, d.workout])).toEqual([['2026-11-08', 'A']]);
+    log.skip('2026-11-07', 'lifting', 'moved');
+    expect(log.day('2026-11-08', '2026-11-08')).toMatchObject({ kind: 'lifting', status: 'planned', workout: 'A' });
+
+    // A Sunday session missed stays in its week: Monday starts the next one.
+    expect(yesterdayMove(log.input('2026-11-09'))).toBeNull();
+    // A day with its session already done offers nothing.
+    expect(yesterdayMove(buildLog().cond('2026-11-03').cond('2026-11-05').input('2026-11-05'))).toBeNull();
+    // Missed conditioning isn't made up.
+    expect(yesterdayMove(buildLog().input('2026-11-04'))).toBeNull();
   });
 
   it('T101 Time after all', () => {

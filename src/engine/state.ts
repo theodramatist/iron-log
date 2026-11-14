@@ -73,6 +73,7 @@ export interface SkipRecord {
   id: string;
   date: LocalDate;
   kind: 'lifting' | 'conditioning';
+  reason: 'time' | 'moved';
 }
 
 export function defaultSettings(program: Program): Settings {
