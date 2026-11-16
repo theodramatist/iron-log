@@ -17,8 +17,8 @@ import {
 import { LineChart, WeekBars, type ChartPoint } from '../charts';
 import { lb, shortDate } from '../format';
 import { useApp } from '../store';
-import { nextWaistCheck, waistHistory, type WaistPoint } from '../waist';
-import { WaistSheet } from '../WaistCheck';
+import { nextWaistCheck, nextWeighIn, waistHistory } from '../bodyCheck';
+import { WaistSheet } from '../BodyCheck';
 import { WeighInSheet } from './Settings';
 
 const NOT_ON_LINE: Partial<Record<LiftHistoryEntry['kind'], string>> = {
@@ -72,15 +72,21 @@ function weeklyMinutes(events: readonly AnyEvent[], from: LocalDate, through: Lo
   return [...byWeek].map(([weekStart, minutes]) => ({ weekStart, minutes }));
 }
 
-/** "41.5 in on Nov 16 · down 0.5 since Nov 2 · next check Nov 30" (Q28). */
-function waistLine(points: WaistPoint[], next: LocalDate, today: LocalDate): string {
-  const latest = points.at(-1);
-  if (!latest) return 'Every two weeks with the tape. The first check comes at the end of your next lifting session.';
+/** "41.5 in on Nov 16 · down 0.5 since Nov 2 · next check Nov 30" (Q28, Q29). */
+function trendLine(points: { date: LocalDate; value: number }[], unit: string, next: LocalDate, today: LocalDate): string {
+  const latest = points.at(-1)!;
   const first = points[0]!;
-  const change = Math.round((latest.inches - first.inches) * 100) / 100;
+  const change = Math.round((latest.value - first.value) * 100) / 100;
   const since =
     points.length < 2 ? '' : change === 0 ? ` · same as ${shortDate(first.date)}` : ` · ${change < 0 ? 'down' : 'up'} ${lb(Math.abs(change))} since ${shortDate(first.date)}`;
-  return `${lb(latest.inches)} in on ${shortDate(latest.date)}${since} · next check ${next <= today ? 'due now' : shortDate(next)}`;
+  return `${lb(latest.value)} ${unit} on ${shortDate(latest.date)}${since} · next check ${next <= today ? 'due now' : shortDate(next)}`;
+}
+
+/** One point a day, the one logged last: setup's weight and a weigh-in the same day don't draw a stub. */
+function lastPerDay<T extends { date: LocalDate }>(points: readonly T[]): T[] {
+  const byDate = new Map<LocalDate, T>();
+  for (const p of points) byDate.set(p.date, p);
+  return [...byDate.values()];
 }
 
 export function Progress() {
@@ -96,7 +102,8 @@ export function Progress() {
   const firstWeek = weekStart(program.athlete.startDate);
   const from = addDays(thisWeek, -7 * 11) < firstWeek ? firstWeek : addDays(thisWeek, -7 * 11);
   const weeks = useMemo(() => weeklyMinutes(events, from, thisWeek), [events, from, thisWeek]);
-  const waists = useMemo(() => waistHistory(events), [events]);
+  const waists = useMemo(() => waistHistory(events).map((w) => ({ date: w.date, value: w.inches })), [events]);
+  const daily = useMemo(() => lastPerDay(weights).map((w) => ({ date: w.date, value: w.lb })), [weights]);
 
   return (
     <main class="screen">
@@ -135,7 +142,8 @@ export function Progress() {
             Add weigh-in
           </button>
         </div>
-        <LineChart points={weights.map((w) => ({ date: w.date, value: w.lb, onLine: true }))} unit="lb" label="Bodyweight" />
+        {daily.length > 0 && <p class="small muted num">{trendLine(daily, 'lb', nextWeighIn(input), today)}</p>}
+        <LineChart points={daily.map((w) => ({ ...w, onLine: true }))} unit="lb" label="Bodyweight" />
       </section>
 
       <section class="card" aria-label="Waist">
@@ -145,8 +153,12 @@ export function Progress() {
             Add measurement
           </button>
         </div>
-        <p class="small muted num">{waistLine(waists, nextWaistCheck(events, today), today)}</p>
-        {waists.length > 0 && <LineChart points={waists.map((w) => ({ date: w.date, value: w.inches, onLine: true }))} unit="in" label="Waist" />}
+        <p class="small muted num">
+          {waists.length > 0
+            ? trendLine(waists, 'in', nextWaistCheck(events, today), today)
+            : 'Every two weeks with the tape. The first check comes at the end of your next lifting session, with a weigh-in.'}
+        </p>
+        {waists.length > 0 && <LineChart points={waists.map((w) => ({ ...w, onLine: true }))} unit="in" label="Waist" />}
       </section>
 
       <section class="card" aria-label="Conditioning minutes per week">

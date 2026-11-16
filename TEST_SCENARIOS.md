@@ -262,6 +262,8 @@ Unless a scenario gives a date, assume program week 10 or later and no maintenan
 
 **T110 · Waist checks (SPEC §4, §5.3, §5.6).** Given no waist measurement. Then a check is due at Monday 11-16's session. When 41.5 inches is logged that day, the next check is due Monday 11-30, and none is due on 11-29. Two measurements on one day keep the one logged last. A measurement changes no prescription. Waist measurements go into backups and come back on import, and import turns down one that isn't a number of inches.
 
+**T111 · Weigh-ins with the waist check (SPEC §5.3, §5.6).** Given weigh-ins on 11-04 and 11-14 and no waist measurement. Then on 11-16 the check is due for the waist, not the weigh-in, and the session's last screen asks for both. When both are logged that day, the next of each is due 11-30. Given instead a waist on 11-16 and the last weigh-in on 11-04, the weigh-in is due by itself on 11-18. A weight under 50 or over 700 lb isn't taken.
+
 **T101 · Time after all (§1).** Given Wednesday 11-04 skipped. When a lifting session is logged on Wednesday anyway. Then Wednesday is done, Thursday 11-05 is conditioning, and Saturday 11-07 is off.
 
 **T102 · Light squat day after a move (§6).** Given the light squat day on and a 200 squat on Monday 11-09. When Wednesday 11-11 is skipped. Then Thursday 11-12's squat is 2×5 at 160, because Saturday 11-14 can still follow, and Saturday's squat is heavy. With Wednesday simply missed and Thursday swapped to lifting, Thursday's squat is heavy.

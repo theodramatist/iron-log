@@ -109,7 +109,7 @@ Six short steps, each one screen, with Back and Next:
 - **Chin-and-dip block:** a superset, labeled as one: six rows alternating chin and dip, each showing assistance (or belt weight) and effective load, with a reps stepper defaulting to the target. After the last set, chips ask for spare reps (0, 1, 2+). Negatives appear as two checkboxes when due.
 - **Rest timer:** a bar that starts when a work set is logged, with the RULES.md section 14 default, plus and minus 30 seconds, and Skip. It sounds and flashes the screen when time is up.
 - **Time guard:** when the projection passes 80 minutes, a banner shows the next cut step.
-- **Finish:** the end check-in ("Did warm-ups feel heavy today?"), then a summary listing each lift's next prescription and any stage change, the food line, and any new suggestion. When a waist check is due, every 14 days and starting with the first session, the summary also asks for his waist in inches, with where to put the tape. A past-date entry never asks (Q28).
+- **Finish:** the end check-in ("Did warm-ups feel heavy today?"), then a summary listing each lift's next prescription and any stage change, the food line, and any new suggestion. When a weigh-in or a waist check is due, every 14 days each, the summary asks for both together: his bodyweight in pounds and his waist in inches, with where to put the tape and the last of each. Either can be left blank and comes back next session. A past-date entry never asks (Q28, Q29).
 
 ### 5.4 Conditioning session
 
@@ -126,7 +126,7 @@ Monday through Sunday for the current week, with arrows for other weeks. Each da
 
 - One small line chart per barbell lift: work weight over time, with resets and light weeks marked.
 - Chins and dips: effective load over time.
-- Bodyweight entries over time, with an "Add weigh-in" button.
+- Bodyweight entries over time, one a day, with an "Add weigh-in" button, the change since the first one, and when the next weigh-in is due (Q29).
 - Waist measurements over time, with an "Add measurement" button, the change since the first one, and when the next check is due (Q28).
 - Conditioning minutes per week against 150.
 
