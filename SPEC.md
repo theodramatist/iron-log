@@ -106,7 +106,7 @@ Six short steps, each one screen, with Back and Next:
 - **Calibration cards** replace normal cards the first time bench, rows, cleans, or dips appear. They add sets one at a time. Bench, rows, and cleans offer "Fast," "Starting to slow," and "Clearly slowed" (or "Bar speed dropped") after each set, and dips end with "5 solid with 2 or 3 to spare."
 - **Returning lifts.** A lift back from a pain stop shows "Return session at 90%" and its lighter weight. In a 22-to-60-day layoff return, each lift asks "Did that warm-up feel heavy?" after its last warm-up set and adjusts the work sets on yes.
 - **Rest timer:** after each work set, with ±30 seconds, Skip, and "Reps left on that set" chips that reset the rest (RULES.md section 14).
-- **Chin-and-dip block:** a superset, labeled as one: six rows alternating chin and dip, each showing assistance (or belt weight) and effective load, with a reps stepper defaulting to the target. After the last set, chips ask for spare reps (0, 1, 2+). Negatives appear as two checkboxes when due.
+- **Chin-and-dip block:** a superset, labeled as one: six rows alternating chin and dip, each showing assistance (or belt weight) and effective load, with a reps stepper defaulting to the target. After the last set, chips ask for spare reps (0, 1, 2+). Negatives appear as two checkboxes when due. "Change" on each movement sets the help, or the belt when weighted, that he actually used, for the rest of the session (RULES.md section 7, Q30).
 - **Rest timer:** a bar that starts when a work set is logged, with the RULES.md section 14 default, plus and minus 30 seconds, and Skip. It sounds and flashes the screen when time is up.
 - **Time guard:** when the projection passes 80 minutes, a banner shows the next cut step.
 - **Finish:** the end check-in ("Did warm-ups feel heavy today?"), then a summary listing each lift's next prescription and any stage change, the food line, and any new suggestion. When a weigh-in or a waist check is due, every 14 days each, the summary asks for both together: his bodyweight in pounds and his waist in inches, with where to put the tape and the last of each. Either can be left blank and comes back next session. A past-date entry never asks (Q28, Q29).
@@ -120,7 +120,7 @@ Six short steps, each one screen, with Back and Next:
 
 ### 5.5 Week
 
-Monday through Sunday for the current week, with arrows for other weeks. Each day shows its plan or what was logged, the week type, and any calendar note from `program.json`. Tapping a logged day opens the session to view or edit. Editing a past session warns that later prescriptions will be recalculated. The editor can also add a lift that shows "Not reached," or chins and dips with nothing logged, at that day's prescription (RULES.md section 17). A day moved with "Do yesterday's workout today" shows as Moved.
+Monday through Sunday for the current week, with arrows for other weeks. Each day shows its plan or what was logged, the week type, and any calendar note from `program.json`. Tapping a logged day opens the session to view or edit. Editing a past session warns that later prescriptions will be recalculated. The editor can also add a lift that shows "Not reached," or chins and dips with nothing logged, at that day's prescription (RULES.md section 17), and change the help or belt logged for chins and dips (Q30). A day moved with "Do yesterday's workout today" shows as Moved.
 
 ### 5.6 Progress
 

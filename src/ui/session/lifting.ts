@@ -109,6 +109,8 @@ export interface LiftingDraft {
   spare: Partial<Record<AssistLiftId, SpareReps>>;
   negatives: [boolean, boolean];
   assistCalibration: Partial<Record<AssistLiftId, AssistCalibrationDraft>>;
+  /** A chin or dip setting he changed for the session (Q30). Absent means the plan's. */
+  assistChange?: Partial<Record<AssistLiftId, { assistance: number; addedLoad: number }>>;
   /** Reps per set for each substitution, by exercise. */
   substitutions: Record<string, (number | null)[]>;
   spinDone: boolean;
@@ -342,9 +344,31 @@ export function assistRows(plan: SessionPlan, d: LiftingDraft): AssistRowDraft[]
   return fresh;
 }
 
-/** The assistance each round uses: the calibrated setting when there was a calibration. */
+/** The assistance each round uses: the calibrated setting when there was a calibration, then any he changed it to (Q30). */
 export function assistSetting(m: AssistMovementPlan, d: LiftingDraft): number {
-  return d.assistCalibration[m.lift]?.setting ?? m.assistance;
+  return d.assistCalibration[m.lift]?.setting ?? d.assistChange?.[m.lift]?.assistance ?? m.assistance;
+}
+
+/** The belt weight each round uses, as planned or as he changed it (Q30). */
+export function assistAddedLoad(m: AssistMovementPlan, d: LiftingDraft): number {
+  return d.assistChange?.[m.lift]?.addedLoad ?? m.addedLoad;
+}
+
+/** What a changed setting moves: the belt when weighted, otherwise the help. Bodyweight has none to change. */
+export function changeableSetting(m: AssistMovementPlan): 'help' | 'belt' | null {
+  if (m.mode === 'WEIGHTED') return 'belt';
+  return m.mode === 'BODYWEIGHT' ? null : 'help';
+}
+
+/** Change a chin or dip setting for the rest of the session (Q30). Setting it back to the plan's clears the change. */
+export function changeAssistSetting(d: LiftingDraft, m: AssistMovementPlan, value: number): LiftingDraft {
+  const what = changeableSetting(m);
+  if (what === null) return d;
+  const next = { ...d.assistChange };
+  const v = Math.max(0, value);
+  if (what === 'belt' ? v === m.addedLoad : v === m.assistance) delete next[m.lift];
+  else next[m.lift] = what === 'belt' ? { assistance: 0, addedLoad: v } : { assistance: v, addedLoad: 0 };
+  return { ...d, assistChange: next };
 }
 
 export function assistCalibrationDraft(m: AssistMovementPlan, d: LiftingDraft): AssistCalibrationDraft {
@@ -518,10 +542,11 @@ function assistLog(m: AssistMovementPlan, d: LiftingDraft, rows: AssistRowDraft[
   const mine = rows.filter((r) => r.lift === m.lift);
   const cal = d.assistCalibration[m.lift];
   if (!mine.some((r) => r.done) && !cal) return undefined;
+  const change = d.assistChange?.[m.lift];
   const log: AssistMovementLog = {
     kind: m.kind,
-    assistance: cal?.setting ?? m.assistance,
-    addedLoad: cal?.setting !== undefined && cal.setting !== null ? 0 : m.addedLoad,
+    assistance: cal?.setting ?? change?.assistance ?? m.assistance,
+    addedLoad: cal?.setting !== undefined && cal.setting !== null ? 0 : (change?.addedLoad ?? m.addedLoad),
     targetReps: cal?.setting !== undefined && cal.setting !== null ? m.targetReps.map(() => 5) : [...m.targetReps],
     reps: mine.map((r) => (r.done ? r.reps : 0)),
   };

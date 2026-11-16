@@ -1,6 +1,6 @@
 // Readings of RULES.md where it was ambiguous (CLAUDE.md, ground rule 1).
 // The owner decided Q1 through Q21 on 2026-11-03, asked for Q22 and Q23 on
-// 2026-11-04, Q24 on 2026-11-09, Q26 and Q27 on 2026-11-14, and Q28 and Q29 on 2026-11-16. Each decision is an [app rule]
+// 2026-11-04, Q24 on 2026-11-09, Q26 and Q27 on 2026-11-14, and Q28 through Q30 on 2026-11-16. Each decision is an [app rule]
 // in the RULES.md section named, and its number matches QUESTIONS.md. New
 // questions get a constant here and an entry there.
 
@@ -86,6 +86,9 @@ export const READINGS = {
 
   /** Q29 (SPEC sections 5.3 and 5.6, T111): days between weigh-ins, asked for with the waist check. Setup's weight is the first. */
   WEIGH_IN_EVERY_DAYS: 14,
+
+  /** Q30 (section 7, T112): a chin or dip setting he changes is the session's setting, so every mode goes on from what he used. */
+  ASSIST_FROM_LOGGED_SETTING: true,
 
   /** Q18 (section 14): time projection estimates, in seconds. */
   BIKE_WARMUP_SEC: 300,

@@ -195,6 +195,7 @@ WEIGHTED (3 sets of 5 with a belt)
 ```
 
 - Once `step` drops to 2.5, it stays there. **[app rule]**
+- **The setting he used [app rule].** He can change a chin or dip setting during a session, or later in the session editor: the help in `LOAD` and `REPS_BUILD`, the belt in `WEIGHTED`. The setting he logs is the session's A or `addedLoad`, so every mode goes on from what he used. A made `WEIGHTED` session adds 2.5 to the belt he used, and a `REPS_BUILD` session keeps the help he used (Q30, T112).
 - Without 5-lb steps, made with room takes off the machine's stack step (`program.json → equipment.assistMachine.stackStepLb`) instead of 5. **[app rule]**
 - **Slow lowering.** Every rep is lowered over about 3 seconds, shown as a cue.
 - **Negatives.** Chins only, in heavy sessions, while chin assistance is 50 lb or less and above 0: 2 bodyweight negatives of 3 to 5 seconds after the last chin set, on A days (or on every chin day when chins and dips are split).

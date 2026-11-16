@@ -2,11 +2,14 @@
 // chin and dip, spare reps, negatives, and the assist-machine substitutes
 // (RULES.md sections 2 and 7).
 
+import { useState } from 'preact/hooks';
 import { nowIso } from '../../clock';
 import { Choice, Question, Stepper } from '../../components';
 import { lb, shortDate, spareLabel } from '../../format';
-import type { AssistMovementPlan, SessionPlan, SpareReps } from '../../../engine';
+import { effectiveSettings, type AssistMovementPlan, type SessionPlan, type SpareReps } from '../../../engine';
+import { useApp } from '../../store';
 import {
+  assistAddedLoad,
   assistCalibrationDraft,
   assistCalibrationNeeded,
   assistCalibrationReps,
@@ -14,6 +17,8 @@ import {
   assistRowReps,
   assistRows,
   assistSetting,
+  changeAssistSetting,
+  changeableSetting,
   setSpare,
   setSubstitutionReps,
   startTimer,
@@ -25,21 +30,83 @@ import {
 } from '../../session/lifting';
 import type { Update } from './shared';
 
-function movementLoad(m: AssistMovementPlan, setting: number): string {
-  if (m.mode === 'WEIGHTED') return `+${lb(m.addedLoad)} lb on the belt`;
+function movementLoad(m: AssistMovementPlan, setting: number, belt: number): string {
+  if (m.mode === 'WEIGHTED') return `+${lb(belt)} lb on the belt`;
   if (m.mode === 'BODYWEIGHT' || setting === 0) return 'Bodyweight';
   return `${lb(setting)} lb help`;
 }
 
-function effective(m: AssistMovementPlan, setting: number): string | null {
+function effective(m: AssistMovementPlan, setting: number, belt: number): string | null {
   if (m.bodyweightLb === null) return null;
-  const load = m.mode === 'WEIGHTED' ? m.bodyweightLb + m.addedLoad : m.bodyweightLb - setting;
+  const load = m.mode === 'WEIGHTED' ? m.bodyweightLb + belt : m.bodyweightLb - setting;
   return `Effective load ${lb(load)}${m.bodyweightStale && m.bodyweightDate ? ` (weigh-in ${shortDate(m.bodyweightDate)})` : ''}`;
+}
+
+/**
+ * "Change": the help or the belt he actually used, for the rest of the session
+ * (RULES.md section 7, Q30). The next session builds from it.
+ */
+function SettingChange(props: { m: AssistMovementPlan; d: LiftingDraft; update: Update; helpStep: number }) {
+  const { m, d, update } = props;
+  const [open, setOpen] = useState(false);
+  const what = changeableSetting(m);
+  if (what === null) return null;
+  const name = m.lift === 'chin' ? 'Chin-up' : 'Dip';
+  const value = what === 'belt' ? assistAddedLoad(m, d) : assistSetting(m, d);
+  const planned = what === 'belt' ? m.addedLoad : m.assistance;
+  const unit = what === 'belt' ? 'lb on the belt' : 'lb help';
+  const changed = value !== planned;
+  if (!open && !changed) {
+    return (
+      <div class="spread">
+        <span class="small">
+          {name}: <span class="num">{lb(value)}</span> {unit}
+        </span>
+        <button type="button" class="btn-quiet" aria-label={`Change the ${name.toLowerCase()} setting`} onClick={() => setOpen(true)}>
+          Change
+        </button>
+      </div>
+    );
+  }
+  return (
+    <div class="question">
+      <div class="question-text">
+        {name} {what === 'belt' ? 'belt' : 'help'}
+      </div>
+      <div class="spread">
+        <Stepper
+          label={`${name} ${what === 'belt' ? 'belt' : 'help'}`}
+          value={value}
+          step={what === 'belt' ? 2.5 : props.helpStep}
+          min={0}
+          max={400}
+          format={(v) => `${lb(v)} lb`}
+          onChange={(v) => update(changeAssistSetting(d, m, v))}
+        />
+        <button
+          type="button"
+          class="btn-quiet"
+          onClick={() => {
+            update(changeAssistSetting(d, m, planned));
+            setOpen(false);
+          }}
+        >
+          {changed ? `Back to ${lb(planned)}` : 'Keep the plan'}
+        </button>
+      </div>
+      <p class="small muted">
+        Planned: {lb(planned)} {unit}. Log what you used, and the next session builds from it.
+      </p>
+    </div>
+  );
 }
 
 export function AssistBlock(props: { plan: SessionPlan; d: LiftingDraft; update: Update }) {
   const { plan, d, update } = props;
+  const { input, program } = useApp();
   const a = plan.assist!;
+  const settings = effectiveSettings(input, d.date);
+  const helpStep = settings.assistTwoPointFiveLbSteps ? 2.5 : settings.assistFiveLbSteps ? 5 : program.equipment.assistMachine.stackStepLb;
   const rest = (next: LiftingDraft, label: string) => startTimer(next, label, a.restSec, nowIso());
 
   if (a.substitutions) {
@@ -107,9 +174,14 @@ export function AssistBlock(props: { plan: SessionPlan; d: LiftingDraft; update:
       ))}
       {movements.flatMap((m) => (m.calibration || d.assistCalibration[m.lift] ? [<AssistCalibration key={m.lift} m={m} d={d} update={update} />] : []))}
       {!calibrating &&
+        movements
+          .filter((m) => !m.calibration && !d.assistCalibration[m.lift])
+          .map((m) => <SettingChange key={`setting-${m.lift}`} m={m} d={d} update={update} helpStep={helpStep} />)}
+      {!calibrating &&
         rows.map((r, i) => {
           const m = byLift(r.lift);
           const setting = assistSetting(m, d);
+          const belt = assistAddedLoad(m, d);
           const last = !rows.slice(i + 1).some((x) => x.lift === r.lift);
           return (
             <div key={i}>
@@ -119,8 +191,8 @@ export function AssistBlock(props: { plan: SessionPlan; d: LiftingDraft; update:
                     {m.lift === 'chin' ? 'Chin-up' : 'Dip'} · round {Math.floor(i / movements.length) + 1}
                   </div>
                   <div class="load">
-                    {movementLoad(m, setting)}
-                    {effective(m, setting) ? ` · ${effective(m, setting)}` : ''}
+                    {movementLoad(m, setting, belt)}
+                    {effective(m, setting, belt) ? ` · ${effective(m, setting, belt)}` : ''}
                   </div>
                 </div>
                 <div class="controls">
