@@ -15,6 +15,9 @@ import {
   assistCalibrationNeeded,
   assistCalibrationStep,
   assistRows,
+  assistSetting,
+  changeAssistSetting,
+  changeableSetting,
   missingRatings,
   missingSpare,
   newLiftingDraft,
@@ -258,6 +261,28 @@ describe('Session drafts', () => {
     e = startTimer(tapSet(e, squat(), 0), 'Squat', squat().restSec, T0, 'squat');
     expect(restAfterMiss(toggleFormBroke(e, squat(), 0), squat(), PROGRAM).timer?.durationSec).toBe(300);
     expect(restAfterMiss(lowerReps(e, squat(), 0), squat(), PROGRAM).timer).toMatchObject({ durationSec: 300, startedAt: T0 });
+  });
+});
+
+describe('Changing a chin or dip setting', () => {
+  it('T112 the session logs the setting he used, and setting it back clears the change', () => {
+    const log = buildLog();
+    const input = log.input('2026-11-04');
+    let d: LiftingDraft = { ...newLiftingDraft('2026-11-04', false), step: 'lifting', startedAt: T0 };
+    const plan = sessionPlan(input, d);
+    const chin = plan.assist!.chin!;
+    expect(chin.assistance).toBe(155);
+    expect(changeableSetting(chin)).toBe('help');
+
+    d = changeAssistSetting(d, chin, 160);
+    expect(assistSetting(chin, d)).toBe(160);
+    expect(changeAssistSetting(d, chin, 155).assistChange).toEqual({});
+
+    assistRows(plan, d).forEach((r, i) => {
+      if (r.lift === 'chin') d = tapAssistRow(plan, d, i);
+    });
+    d = setSpare(d, 'chin', 1);
+    expect(toLiftingEvent(plan, d).assist?.chin).toMatchObject({ assistance: 160, addedLoad: 0, reps: [5, 5, 5], spare: 1 });
   });
 });
 

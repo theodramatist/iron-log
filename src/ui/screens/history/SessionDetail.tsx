@@ -202,7 +202,9 @@ function LiftingEditor(props: { event: LiftingSessionEvent; onDone: () => void }
   const { repo, program, input } = app;
   const [ev, setEv] = useState<LiftingSessionEvent>(() => structuredClone(props.event));
   const [problem, setProblem] = useState<string | null>(null);
-  const inv = useMemo(() => inventoryFrom(effectiveSettings(input, ev.date)), [input, ev.date]);
+  const settingsThen = useMemo(() => effectiveSettings(input, ev.date), [input, ev.date]);
+  const inv = useMemo(() => inventoryFrom(settingsThen), [settingsThen]);
+  const helpStep = settingsThen.assistTwoPointFiveLbSteps ? 2.5 : settingsThen.assistFiveLbSteps ? 5 : program.equipment.assistMachine.stackStepLb;
   const editLift = (i: number, next: LiftLog) => setEv({ ...ev, lifts: ev.lifts.map((l, j) => (j === i ? next : l)) });
   const editAssist = (lift: 'chin' | 'dip', next: AssistMovementLog) => setEv({ ...ev, assist: { ...ev.assist, [lift]: next } });
 
@@ -232,6 +234,12 @@ function LiftingEditor(props: { event: LiftingSessionEvent; onDone: () => void }
     setAdded(added.filter((k) => k !== lift));
   };
   const toAdd = { lifts: addLifts.filter((l) => !added.includes(l.lift)), assist: addChinDip.filter((m) => !added.includes(m.lift)) };
+  // What the editor lets him change (Q30): the help, or the belt, as first logged. Not a calibration, and bodyweight has none.
+  const settingOf = (lift: 'chin' | 'dip'): 'help' | 'belt' | null => {
+    const base = props.event.assist?.[lift] ?? addChinDip.find((m) => m.lift === lift);
+    if (!base || base.calibration) return null;
+    return base.addedLoad > 0 ? 'belt' : base.assistance > 0 ? 'help' : null;
+  };
   const owed =
     ev.lifts.some((l) => added.includes(l.lift) && owesRating(l)) ||
     (['chin', 'dip'] as const).some((k) => added.includes(k) && ev.assist?.[k]?.spare === undefined);
@@ -289,6 +297,8 @@ function LiftingEditor(props: { event: LiftingSessionEvent; onDone: () => void }
               key={lift}
               name={program.lifts[lift].label}
               a={a}
+              setting={settingOf(lift)}
+              helpStep={helpStep}
               onChange={(next) => editAssist(lift, next)}
               {...(added.includes(lift) ? { onTakeOut: () => takeOutAssist(lift) } : {})}
             />
@@ -405,12 +415,33 @@ function LiftEditor(props: { log: LiftLog; inv: Inventory; program: Program; onC
   );
 }
 
-function AssistEditor(props: { name: string; a: AssistMovementLog; onChange: (next: AssistMovementLog) => void; onTakeOut?: () => void }) {
-  const { name, a } = props;
+function AssistEditor(props: {
+  name: string;
+  a: AssistMovementLog;
+  setting: 'help' | 'belt' | null;
+  helpStep: number;
+  onChange: (next: AssistMovementLog) => void;
+  onTakeOut?: () => void;
+}) {
+  const { name, a, setting } = props;
   return (
     <section class="card" aria-label={`Edit ${name}`}>
       <div class="card-title">{name}</div>
-      <p class="small muted">{loadText(a)}</p>
+      {setting ? (
+        <Question text={setting === 'belt' ? 'Weight on the belt' : 'Help'}>
+          <Stepper
+            label={`${name} ${setting}`}
+            value={setting === 'belt' ? a.addedLoad : a.assistance}
+            step={setting === 'belt' ? 2.5 : props.helpStep}
+            min={0}
+            max={400}
+            format={(v) => `${lb(v)} lb`}
+            onChange={(v) => props.onChange(setting === 'belt' ? { ...a, addedLoad: v } : { ...a, assistance: v })}
+          />
+        </Question>
+      ) : (
+        <p class="small muted">{loadText(a)}</p>
+      )}
       {a.reps.map((r, i) => (
         <div class="assist-row" key={i}>
           <div class="what">Set {i + 1}</div>

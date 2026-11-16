@@ -125,6 +125,8 @@ export function applyAssistResult(a: AssistState, log: AssistMovementLog, ctx: A
       return s;
     }
     case 'REPS_BUILD': {
+      // Q30: the help he logged is the session's A, so the build goes on from what he used.
+      if (READINGS.ASSIST_FROM_LOGGED_SETTING) s.assistance = log.assistance;
       if (made(log)) {
         s.targetReps += 1;
         if (s.targetReps > 8) {
@@ -148,6 +150,8 @@ export function applyAssistResult(a: AssistState, log: AssistMovementLog, ctx: A
       return s;
     }
     case 'WEIGHTED': {
+      // Q30: the belt he logged is the session's, so a made session adds 2.5 to what he used.
+      if (READINGS.ASSIST_FROM_LOGGED_SETTING) s.addedLoad = log.addedLoad;
       if (made(log)) s.addedLoad += 2.5;
       return s;
     }

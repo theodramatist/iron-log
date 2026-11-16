@@ -75,6 +75,42 @@ describe('§7 Chins and dips', () => {
     expect(b.assist?.chin?.targetReps).toEqual([5, 5, 5]);
   });
 
+  it('T112 The setting he used', () => {
+    // Assisted: prescribed 150, done at 155 and made with room. The next is 150, not 145.
+    const load = buildLog().override('2026-11-03', 'chin', 'assistance', 150).lift('2026-11-04', { chin: cd.made(2) });
+    expect(load.assist('chin')?.assistance).toBe(145);
+    load.edit(load.sessionOn('2026-11-04'), (e) => {
+      e.assist!.chin!.assistance = 155;
+    });
+    expect(load.assist('chin')).toMatchObject({ mode: 'LOAD', assistance: 150 });
+
+    // Building reps: the help he used carries on with the next rep target.
+    const build = buildLog({ setup: { assistTwoPointFiveLbSteps: false } })
+      .override('2026-11-03', 'chin', 'assistance', 150)
+      .lift('2026-11-04', { chin: cd.made(2) })
+      .lift('2026-11-06', { chin: cd.missed() })
+      .lift('2026-11-09', { chin: cd.missed() })
+      .lift('2026-11-11', { chin: cd.made(0) });
+    expect(build.assist('chin')).toMatchObject({ mode: 'REPS_BUILD', assistance: 150, targetReps: 7 });
+    build.edit(build.sessionOn('2026-11-11'), (e) => {
+      e.assist!.chin!.assistance = 155;
+    });
+    expect(build.assist('chin')).toMatchObject({ mode: 'REPS_BUILD', assistance: 155, targetReps: 7 });
+
+    // Weighted: the belt he used, plus 2.5.
+    const belt = buildLog()
+      .override('2026-11-03', 'chin', 'assistance', 2.5)
+      .lift('2026-11-04', { chin: cd.made(2) })
+      .lift('2026-11-06', { chin: cd.reps([5, 5, 5]) })
+      .lift('2026-11-09', { chin: cd.made(0) });
+    expect(belt.assist('chin')).toMatchObject({ mode: 'WEIGHTED', addedLoad: 5 });
+    belt.edit(belt.sessionOn('2026-11-09'), (e) => {
+      e.assist!.chin!.addedLoad = 10;
+    });
+    expect(belt.assist('chin')).toMatchObject({ mode: 'WEIGHTED', addedLoad: 12.5 });
+    expect(belt.plan('2026-11-11').assist?.chin?.addedLoad).toBe(12.5);
+  });
+
   it('T42 Reaching zero', () => {
     const log = buildLog().override('2026-11-03', 'chin', 'assistance', 2.5).lift('2026-11-04', { chin: cd.made(2) });
     expect(log.assist('chin')).toMatchObject({ mode: 'BODYWEIGHT', assistance: 0 });
