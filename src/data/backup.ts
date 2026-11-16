@@ -20,6 +20,7 @@ export const EVENT_TYPES = [
   'suggestionDismissed',
   'override',
   'skip',
+  'waist',
 ] as const satisfies readonly EventType[];
 
 // Fails to compile if an event type is added to the engine without being listed here.
@@ -110,6 +111,8 @@ function payloadOk(e: Obj): boolean {
       );
     case 'bodyweight':
       return isNum(e.pounds);
+    case 'waist':
+      return isNum(e.inches) && e.inches > 0;
     case 'settingsChange':
       return isStr(e.key);
     case 'weekDeclaration':

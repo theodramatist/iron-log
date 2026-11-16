@@ -1,6 +1,6 @@
 // Readings of RULES.md where it was ambiguous (CLAUDE.md, ground rule 1).
 // The owner decided Q1 through Q21 on 2026-11-03, asked for Q22 and Q23 on
-// 2026-11-04, Q24 on 2026-11-09, and Q26 and Q27 on 2026-11-14. Each decision is an [app rule]
+// 2026-11-04, Q24 on 2026-11-09, Q26 and Q27 on 2026-11-14, and Q28 on 2026-11-16. Each decision is an [app rule]
 // in the RULES.md section named, and its number matches QUESTIONS.md. New
 // questions get a constant here and an entry there.
 
@@ -80,6 +80,9 @@ export const READINGS = {
 
   /** Q27 (section 8, T106): an extra ride of 20 minutes or more counts as one of the week's two conditioning sessions for conditioning weeks and the layoff rule. */
   EXTRA_MINUTES_COUNT_TOWARD_CONDITIONING_WEEKS: true,
+
+  /** Q28 (SPEC sections 5.3 and 5.6, T110): days between waist checks. The first is due at the first lifting session. */
+  WAIST_CHECK_EVERY_DAYS: 14,
 
   /** Q18 (section 14): time projection estimates, in seconds. */
   BIKE_WARMUP_SEC: 300,

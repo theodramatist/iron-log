@@ -329,6 +329,12 @@ export class Log {
     return this;
   }
 
+  /** A waist measurement with the tape, in inches (Q28). */
+  waist(date: LocalDate, inches: number): this {
+    this.events.push({ ...this.stamp(), type: 'waist', date, inches });
+    return this;
+  }
+
   /** "No time today," or with `moved`, "Do yesterday's workout today" the next day (RULES.md section 1). */
   skip(date: LocalDate, kind: 'lifting' | 'conditioning', reason: 'time' | 'moved' = 'time'): this {
     this.events.push({ ...this.stamp(), type: 'skip', date, kind, reason });

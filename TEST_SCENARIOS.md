@@ -260,6 +260,8 @@ Unless a scenario gives a date, assume program week 10 or later and no maintenan
 
 **T109 · A lift added afterward (§17).** Given Wednesday 11-04's session logged with the deadlift never reached, so Friday 11-06's deadlift gets the weight Wednesday's would have had. When Wednesday's session is edited to add the deadlift at its prescription, made, rated 3–4 left. Then Friday's deadlift is 15 lb heavier. Chins with nothing logged that day can be added the same way, and replay as if they'd been logged. A calibration that was never reached can't be added afterward: it runs at the lift's next session, and so do dips that were to calibrate that day.
 
+**T110 · Waist checks (SPEC §4, §5.3, §5.6).** Given no waist measurement. Then a check is due at Monday 11-16's session. When 41.5 inches is logged that day, the next check is due Monday 11-30, and none is due on 11-29. Two measurements on one day keep the one logged last. A measurement changes no prescription. Waist measurements go into backups and come back on import, and import turns down one that isn't a number of inches.
+
 **T101 · Time after all (§1).** Given Wednesday 11-04 skipped. When a lifting session is logged on Wednesday anyway. Then Wednesday is done, Thursday 11-05 is conditioning, and Saturday 11-07 is off.
 
 **T102 · Light squat day after a move (§6).** Given the light squat day on and a 200 squat on Monday 11-09. When Wednesday 11-11 is skipped. Then Thursday 11-12's squat is 2×5 at 160, because Saturday 11-14 can still follow, and Saturday's squat is heavy. With Wednesday simply missed and Thursday swapped to lifting, Thursday's squat is heavy.

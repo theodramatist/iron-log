@@ -339,7 +339,7 @@ The app doesn't track food. It shows these prompts only:
 
 - **Lifting session:** date, workout, week type, check-ins, every set (weight, reps, form flags, skipped), effort rating per lift, assistance settings and reps, spare reps, negatives done, substitutions, pain stops and pain answers, calibration results, layoff warm-up answers, start and end times, and notes.
 - **Conditioning session:** date, conditioning week, phase, target and actual minutes, machines, interval rounds planned and done, the short-night answer, and notes.
-- **Other events:** bodyweight entries, settings changes, week declarations (light, floor, overloaded), illness start and "I'm better," screening acknowledgments, the food-lever answer, clinician clearances, and manual overrides.
+- **Other events:** bodyweight entries, waist measurements (tracking only, Q28), settings changes, week declarations (light, floor, overloaded), illness start and "I'm better," screening acknowledgments, the food-lever answer, clinician clearances, and manual overrides.
 
 ## 16. Order of operations
 

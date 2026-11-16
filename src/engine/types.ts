@@ -179,6 +179,12 @@ export interface BodyweightEvent extends BaseEvent {
   pounds: number;
 }
 
+/** A waist measurement with the tape (Q28). It's for tracking, and no rule reads it. */
+export interface WaistEvent extends BaseEvent {
+  type: 'waist';
+  inches: number;
+}
+
 export interface SettingsChangeEvent extends BaseEvent {
   type: 'settingsChange';
   key: keyof Settings;
@@ -280,7 +286,8 @@ export type AnyEvent =
   | PainClearedEvent
   | SuggestionDismissedEvent
   | OverrideEvent
-  | SkipEvent;
+  | SkipEvent
+  | WaistEvent;
 
 export type EventType = AnyEvent['type'];
 
