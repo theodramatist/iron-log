@@ -286,6 +286,9 @@ export function applyEvent(st: EngineState, ev: AnyEvent): void {
     case 'skip':
       st.skips.push({ id: ev.id, date: ev.date, kind: ev.kind, reason: ev.reason });
       return;
+    case 'waist':
+      // Tracking only (Q28): no prescription depends on it.
+      return;
   }
 }
 
